@@ -140,11 +140,13 @@ app.post('/api/challenge/update', (req, res) => {
     } else res.json({ success: false });
 });
 
-// app.listen을 조건문으로 감싸고, module.exports를 추가해야 합니다.
+// ▼▼▼ [핵심 수정 부분] ▼▼▼
+// 1. 로컬 환경에서 실행될 때 (node server.js)
 if (require.main === module) {
     app.listen(port, () => {
         console.log(`Server running at http://localhost:${port}`);
     });
 }
 
-module.exports = app;  // <--- 이 줄이 핵심입니다!
+// 2. Vercel 환경에서 실행될 때 (자동으로 import 됨)
+module.exports = app;
