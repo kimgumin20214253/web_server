@@ -290,11 +290,11 @@
 
         async function loadAllData() {
             try {
-                const resUser = await fetch(`https://web-group-i.onrender.com/api/user/${currentUser.id}`);
+                const resUser = await fetch(`/api/user/${currentUser.id}`);
                 userInfo = await resUser.json();
-                const resSave = await fetch(`https://web-group-i.onrender.com/api/savings/${currentUser.id}`);
+                const resSave = await fetch(`/api/savings/${currentUser.id}`);
                 savingData = await resSave.json();
-                const resChal = await fetch(`https://web-group-i.onrender.com/api/challenges/${currentUser.id}`);
+                const resChal = await fetch(`/api/challenges/${currentUser.id}`);
                 challengesData = await resChal.json();
 
                 checkBadges();
@@ -473,7 +473,7 @@
             const newName = document.getElementById('new-nickname').value;
             if(!newName) return;
 
-            fetch('https://web-group-i.onrender.com/api/user/update', {
+            fetch('/api/user/update', {
                 method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ id: currentUser.id, nickname: newName })

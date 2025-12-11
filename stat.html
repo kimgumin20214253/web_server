@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -194,7 +195,7 @@
         };
 
         function loadServerData() {
-            fetch(`https://web-group-i.onrender.com/api/savings/${currentUser.id}`)
+            fetch(`/api/savings/${currentUser.id}`)
             .then(res => res.json())
             .then(data => {
                 historyData = data;
