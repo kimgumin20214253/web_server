@@ -140,6 +140,11 @@ app.post('/api/challenge/update', (req, res) => {
     } else res.json({ success: false });
 });
 
-app.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-});
+// app.listen을 조건문으로 감싸고, module.exports를 추가해야 합니다.
+if (require.main === module) {
+    app.listen(port, () => {
+        console.log(`Server running at http://localhost:${port}`);
+    });
+}
+
+module.exports = app;  // <--- 이 줄이 핵심입니다!
