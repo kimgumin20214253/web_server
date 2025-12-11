@@ -1,571 +1,182 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>저축 앱 - 나의 정보</title>
-    <style>
-        /* [기본 스타일] */
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Pretendard', sans-serif; background-color: #FAF4EC; color: #333; overflow: hidden; display: flex; flex-direction: column; }
-        
-        .header { 
-            padding: 40px 20px 30px; 
-            text-align: center; 
-            font-size: 28px; 
-            font-weight: 900; 
-            color: #000; 
-            position: relative; 
+const express = require('express');
+const cors = require('cors');
+const fs = require('fs');
+const path = require('path');
+
+const app = express();
+const port = process.env.PORT || 3000;
+
+app.use(cors());
+app.use(express.json());
+
+// 데이터 파일 경로 설정
+const DATA_FILE = path.join(__dirname, 'users.json');
+const SAVINGS_FILE = path.join(__dirname, 'savings.json');
+const CHALLENGES_FILE = path.join(__dirname, 'challenges.json');
+
+// 파일이 없으면 빈 배열로 생성
+if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, JSON.stringify([]));
+if (!fs.existsSync(SAVINGS_FILE)) fs.writeFileSync(SAVINGS_FILE, JSON.stringify([]));
+if (!fs.existsSync(CHALLENGES_FILE)) fs.writeFileSync(CHALLENGES_FILE, JSON.stringify([]));
+
+// --- API 정의 ---
+
+// 1. 아이디 중복 확인
+app.post('/api/check-id', (req, res) => {
+    const { loginId } = req.body;
+    const users = JSON.parse(fs.readFileSync(DATA_FILE));
+    res.json({ available: !users.find(u => u.loginId === loginId) });
+});
+
+// 2. 이메일 중복 확인
+app.post('/api/check-email', (req, res) => {
+    const { email } = req.body;
+    const users = JSON.parse(fs.readFileSync(DATA_FILE));
+    res.json({ available: !users.find(u => u.email === email) });
+});
+
+// 3. 회원가입
+app.post('/api/signup', (req, res) => {
+    const { loginId, password, nickname, email } = req.body;
+    const users = JSON.parse(fs.readFileSync(DATA_FILE));
+    if (users.find(u => u.loginId === loginId)) return res.json({ success: false, message: '이미 존재하는 아이디입니다.' });
+    
+    const newUser = { 
+        id: Date.now(), 
+        loginId, password, nickname, email, 
+        created_at: new Date().toISOString() 
+    };
+    users.push(newUser);
+    fs.writeFileSync(DATA_FILE, JSON.stringify(users, null, 2));
+    res.json({ success: true });
+});
+
+// 4. 로그인
+app.post('/api/login', (req, res) => {
+    const { loginId, password } = req.body;
+    const users = JSON.parse(fs.readFileSync(DATA_FILE));
+    const user = users.find(u => u.loginId === loginId && u.password === password);
+    if (user) res.json({ success: true, user: user });
+    else res.json({ success: false, message: '실패' });
+});
+
+// 5. 아이디 찾기
+app.post('/api/find-id', (req, res) => {
+    const { email } = req.body;
+    const users = JSON.parse(fs.readFileSync(DATA_FILE));
+    const user = users.find(u => u.email === email);
+    if (user) res.json({ success: true, loginId: user.loginId });
+    else res.json({ success: false });
+});
+
+// 6. 비밀번호 찾기
+app.post('/api/find-pw', (req, res) => {
+    const { loginId, email } = req.body;
+    const users = JSON.parse(fs.readFileSync(DATA_FILE));
+    const user = users.find(u => u.loginId === loginId && u.email === email);
+    if (user) res.json({ success: true, password: user.password });
+    else res.json({ success: false });
+});
+
+// 7. 비밀번호 변경 (로그인 전용)
+app.post('/api/user/change-pw', (req, res) => {
+    const { loginId, currentPassword, newPassword } = req.body;
+    const users = JSON.parse(fs.readFileSync(DATA_FILE));
+    const index = users.findIndex(u => u.loginId === loginId);
+
+    if (index !== -1) {
+        if (users[index].password === currentPassword) {
+            users[index].password = newPassword;
+            fs.writeFileSync(DATA_FILE, JSON.stringify(users, null, 2));
+            res.json({ success: true });
+        } else {
+            res.json({ success: false, message: '기존 비밀번호가 틀렸습니다.' });
         }
+    } else {
+        res.json({ success: false, message: '존재하지 않는 아이디입니다.' });
+    }
+});
 
-        .logout-btn {
-            position: absolute;
-            right: 20px;
-            top: 45px;
-            padding: 6px 12px;
-            background-color: #FFD54F;
-            border: none;
-            border-radius: 15px;
-            font-size: 12px;
-            font-weight: bold;
-            cursor: pointer;
-            color: #333;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: background-color 0.2s;
-        }
-        .logout-btn:hover { background-color: #FFCA28; }
-        
-        .content-container { flex: 1; padding: 0 20px 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 25px; }
+// 8. 비밀번호 변경 (마이페이지용)
+app.post('/api/user/password', (req, res) => {
+    const { id, currentPassword, newPassword } = req.body;
+    const users = JSON.parse(fs.readFileSync(DATA_FILE));
+    const index = users.findIndex(u => u.id === id);
+    if (index !== -1 && users[index].password === currentPassword) {
+        users[index].password = newPassword;
+        fs.writeFileSync(DATA_FILE, JSON.stringify(users, null, 2));
+        res.json({ success: true });
+    } else res.json({ success: false, message: '오류' });
+});
 
-        /* 프로필 카드 */
-        .profile-card { 
-            background-color: #FFD54F; 
-            border-radius: 25px; 
-            padding: 30px 20px; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
-            display: flex; flex-direction: column; align-items: center; 
-        }
-        .profile-top { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            width: 100%; 
-            margin-bottom: 30px; 
-            padding-left: 10px; 
-        }
-        .profile-info-box { display: flex; align-items: center; gap: 15px; }
-        .profile-icon { font-size: 55px; }
-        .profile-name { font-size: 26px; font-weight: 900; color: #000; }
-        
-        /* 버튼 그룹 (정보수정, 비번변경) */
-        .btn-group { display: flex; flex-direction: column; gap: 5px; align-items: flex-end; }
+// 9. 유저 정보 조회
+app.get('/api/user/:id', (req, res) => {
+    const userId = parseInt(req.params.id);
+    const users = JSON.parse(fs.readFileSync(DATA_FILE));
+    const user = users.find(u => u.id === userId);
+    if (user) res.json(user); else res.status(404).json({});
+});
 
-        .edit-btn { padding: 8px 16px; background-color: #FFE082; border: none; border-radius: 20px; font-size: 13px; font-weight: bold; cursor: pointer; color: #333; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 110px;}
-        .edit-btn:hover { background-color: #FFCA28; }
-        
-        .stats-row { display: flex; width: 100%; justify-content: space-around; }
-        .stat-item { text-align: center; }
-        .stat-label { font-size: 14px; color: #444; margin-bottom: 8px; font-weight: bold; }
-        .stat-value { font-size: 20px; font-weight: 900; color: #000; }
+// 10. 유저 정보 수정 (닉네임)
+app.post('/api/user/update', (req, res) => {
+    const { id, nickname } = req.body;
+    const users = JSON.parse(fs.readFileSync(DATA_FILE));
+    const index = users.findIndex(u => u.id === id);
+    if (index !== -1) {
+        users[index].nickname = nickname;
+        fs.writeFileSync(DATA_FILE, JSON.stringify(users, null, 2));
+        res.json({ success: true });
+    } else res.json({ success: false });
+});
 
-        /* 배지 섹션 */
-        .badge-section { 
-            background-color: #FFF5F5; 
-            border-radius: 25px; 
-            padding: 25px; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05); 
-            position: relative; 
-            min-height: 300px; 
-        }
-        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-        .section-title { font-size: 20px; font-weight: 900; color: #000; }
-        .section-count { color: #D32F2F; font-weight: bold; margin-left: 5px; }
-        .plus-btn { width: 36px; height: 36px; background-color: #FFD54F; border-radius: 50%; border: none; font-size: 24px; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 2px 4px rgba(0,0,0,0.1); color: #333; }
+// 11. 저금 내역 조회
+app.get('/api/savings/:userId', (req, res) => {
+    const userId = parseInt(req.params.userId);
+    const allSavings = JSON.parse(fs.readFileSync(SAVINGS_FILE));
+    res.json(allSavings.filter(s => s.userId === userId));
+});
 
-        .badge-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
-        .badge-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; position: relative; }
-        .badge-img { width: 70px; height: 70px; object-fit: contain; transition: all 0.3s ease; opacity: 0.3; filter: grayscale(100%); }
-        .badge-img.unlocked { opacity: 1; filter: drop-shadow(0 4px 4px rgba(0,0,0,0.1)); }
-        
-        /* 배지 팝업 */
-        .badge-popup { 
-            position: fixed; width: 220px; padding: 25px; 
-            background: rgba(255, 255, 255, 0.98); 
-            border: 3px solid #FFD54F; 
-            border-radius: 20px; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
-            z-index: 300; top: 50%; left: 50%; 
-            transform: translate(-50%, -50%); text-align: center; display: none; 
-        }
-        .badge-popup.show { display: block; animation: popUp 0.3s ease; }
-        @keyframes popUp { from { opacity: 0; transform: translate(-50%, -40%); } to { opacity: 1; transform: translate(-50%, -50%); } }
-        
-        .bp-img { width: 80px; height: 80px; margin-bottom: 15px; }
-        .bp-title { font-size: 18px; font-weight: 900; margin-bottom: 8px; color: #000; }
-        .bp-date { font-size: 13px; color: #FF6B6B; margin-bottom: 15px; font-weight: bold; }
-        .bp-desc { font-size: 14px; color: #555; line-height: 1.5; word-break: keep-all; }
-        .bp-close { position: absolute; top: 15px; right: 15px; cursor: pointer; font-weight: bold; color: #AAA; font-size: 20px; }
+// 12. 저금하기
+app.post('/api/save', (req, res) => {
+    const { userId, category, subCategory, amount, memo, balance } = req.body;
+    const allSavings = JSON.parse(fs.readFileSync(SAVINGS_FILE));
+    const newSave = { id: Date.now(), userId, category, sub_category: subCategory, amount, balance, memo, saved_date: new Date().toISOString() };
+    allSavings.push(newSave);
+    fs.writeFileSync(SAVINGS_FILE, JSON.stringify(allSavings, null, 2));
+    res.json({ success: true });
+});
 
-        /* 미션 달성 알림 토스트 */
-        .mission-toast {
-            position: fixed; top: 20px; left: 50%; transform: translateX(-50%);
-            background-color: #333; color: #fff;
-            padding: 15px 25px; border-radius: 30px;
-            font-size: 14px; font-weight: bold;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            z-index: 300; display: none; opacity: 0;
-            transition: opacity 0.5s;
-        }
-        .mission-toast.show { display: block; opacity: 1; animation: slideDownToast 0.5s forwards; }
-        @keyframes slideDownToast { from { top: -50px; opacity: 0; } to { top: 20px; opacity: 1; } }
+// 13. 챌린지 생성
+app.post('/api/challenge', (req, res) => {
+    const { userId, title, category, subCategory, targetAmount, startDate, endDate } = req.body;
+    const challenges = JSON.parse(fs.readFileSync(CHALLENGES_FILE));
+    const newChallenge = { id: Date.now(), user_id: userId, title, category, sub_category: subCategory, target_amount: targetAmount, saved_amount: 0, start_date: startDate, end_date: endDate, status: 'ongoing' };
+    challenges.push(newChallenge);
+    fs.writeFileSync(CHALLENGES_FILE, JSON.stringify(challenges, null, 2));
+    res.json({ success: true });
+});
 
-        /* 네비게이션 바 */
-        .navbar { height: 110px; background-color: transparent; border-top: 4px solid #D9D9D9; display: flex; justify-content: space-evenly; align-items: center; padding-bottom: 10px; z-index: 50; flex-shrink: 0; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; border: none; background: none; gap: 6px; text-decoration: none; }
-        .nav-icon-box { width: 58px; height: 58px; background-color: #FFD54F; border-radius: 14px; display: flex; justify-content: center; align-items: center; box-shadow: 0 3px 6px rgba(0,0,0,0.1); transition: all 0.3s ease; }
-        .nav-icon-img { width: 32px; height: 32px; object-fit: contain; }
-        .nav-text { font-size: 12px; color: #888; font-weight: 500; }
-        .nav-item.active .nav-icon-box { background-color: #FF6B6B; transform: translateY(-5px); box-shadow: 0 5px 10px rgba(255, 107, 107, 0.3); }
-        .nav-item.active .nav-icon-img { filter: brightness(0) invert(1); }
-        .nav-item.active .nav-text { color: #333; font-weight: bold; }
+// 14. 챌린지 목록 조회
+app.get('/api/challenges/:userId', (req, res) => {
+    const userId = parseInt(req.params.userId);
+    const challenges = JSON.parse(fs.readFileSync(CHALLENGES_FILE));
+    res.json(challenges.filter(c => c.user_id === userId).sort((a, b) => b.id - a.id));
+});
 
-        /* 모달 공통 */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 200; justify-content: center; align-items: center; }
-        .modal-overlay.open { display: flex; }
-        
-        #badge-list-modal .modal-content {
-            background-color: #FFF5F5; 
-            border: 4px solid #EF9A9A; 
-            border-radius: 30px;
-            padding: 30px;
-            width: 90%; max-width: 380px;
-            position: relative;
-        }
-        #badge-list-modal .modal-title { color: #D32F2F; font-weight: 900; }
-        
-        .modal-back-btn { 
-            position: absolute; top: 20px; left: 20px; 
-            width: 24px; height: 24px; cursor: pointer; 
-            transition: transform 0.2s;
-        }
-        .modal-back-btn:hover { transform: scale(1.1); }
+// 15. 챌린지 상태 업데이트
+app.post('/api/challenge/update', (req, res) => {
+    const { id, savedAmount, status } = req.body;
+    const challenges = JSON.parse(fs.readFileSync(CHALLENGES_FILE));
+    const index = challenges.findIndex(c => c.id === id);
+    if (index !== -1) {
+        challenges[index].saved_amount = savedAmount;
+        if (status) challenges[index].status = status;
+        fs.writeFileSync(CHALLENGES_FILE, JSON.stringify(challenges, null, 2));
+        res.json({ success: true });
+    } else res.json({ success: false });
+});
 
-        .badge-list-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 20px 0; }
-        .draggable-badge { cursor: grab; transition: transform 0.2s, opacity 0.2s; }
-        .draggable-badge.dragging { opacity: 0.5; transform: scale(1.1); }
-
-        .modal-content { background-color: #FFF; width: 90%; max-width: 360px; border-radius: 20px; padding: 25px; box-sizing: border-box; position: relative; max-height: 85%; overflow-y: auto; }
-        .modal-title { font-size: 20px; font-weight: bold; text-align: center; margin-bottom: 20px; }
-        
-        .input-box { width: 100%; padding: 15px; background-color: #EFEBE6; border: none; border-radius: 10px; font-size: 14px; text-align: center; box-sizing: border-box; margin-bottom: 15px;}
-        .confirm-btn { width: 100%; padding: 15px; background-color: #FFD54F; border: none; border-radius: 30px; font-size: 18px; font-weight: bold; cursor: pointer; color: #000; }
-    </style>
-</head>
-<body>
-
-    <div class="header">
-        내 정보
-        <button class="logout-btn" onclick="logout()">로그아웃</button>
-    </div>
-
-    <div class="content-container">
-        <div class="profile-card">
-            <div class="profile-top">
-                <div class="profile-info-box">
-                    <div class="profile-icon">👤</div>
-                    <span class="profile-name" id="user-nickname"></span>
-                </div>
-                <div class="btn-group">
-                    <button class="edit-btn" onclick="openEditModal()">정보 수정</button>
-                    <button class="edit-btn" onclick="openPasswordModal()">비밀번호 변경</button>
-                </div>
-            </div>
-            <div class="stats-row">
-                <div class="stat-item">
-                    <div class="stat-label">총 누적 저금액</div>
-                    <div class="stat-value" id="total-saved-display">0</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-label">함께한지</div>
-                    <div class="stat-value" id="days-active-display">1일</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="badge-section">
-            <div class="section-header">
-                <div><span class="section-title">나의 배지</span><span class="section-count" id="badge-count-display">(0/12)</span></div>
-                <button class="plus-btn" onclick="openBadgeListModal()">+</button>
-            </div>
-            <div class="badge-grid" id="badge-grid"></div>
-        </div>
-    </div>
-
-    <div id="mission-toast" class="mission-toast"></div>
-
-    <div class="navbar">
-        <a href="home.html" class="nav-item">
-            <div class="nav-icon-box"><img src="icon_home.png" class="nav-icon-img"></div>
-            <span class="nav-text">홈</span>
-        </a>
-        <a href="stat.html" class="nav-item">
-            <div class="nav-icon-box"><img src="icon_stat.png" class="nav-icon-img"></div>
-            <span class="nav-text">통계</span>
-        </a>
-        <a href="challenge.html" class="nav-item">
-            <div class="nav-icon-box"><img src="icon_challenge.png" class="nav-icon-img"></div>
-            <span class="nav-text">챌린지</span>
-        </a>
-        <div class="nav-item active">
-            <div class="nav-icon-box"><img src="icon_user.png" class="nav-icon-img"></div>
-            <span class="nav-text">나의 정보</span>
-        </div>
-    </div>
-
-    <div id="badge-popup" class="badge-popup">
-        <div class="bp-close" onclick="closeBadgePopup()">x</div>
-        <img src="" id="bp-img" class="bp-img">
-        <div class="bp-title" id="bp-title"></div>
-        <div class="bp-date" id="bp-date"></div>
-        <div class="bp-desc" id="bp-desc"></div>
-    </div>
-
-    <div id="edit-modal" class="modal-overlay">
-        <div class="modal-content">
-            <img src="back.png" class="modal-back-btn" onclick="closeModal('edit-modal')" alt="뒤로가기">
-            <div class="modal-title">닉네임 변경</div>
-            <input type="text" id="new-nickname" class="input-box" placeholder="새로운 닉네임 입력">
-            <button class="confirm-btn" onclick="saveNickname()">저장</button>
-        </div>
-    </div>
-
-    <div id="pw-modal" class="modal-overlay">
-        <div class="modal-content">
-            <img src="back.png" class="modal-back-btn" onclick="closeModal('pw-modal')" alt="뒤로가기">
-            <div class="modal-title">비밀번호 변경</div>
-            <input type="password" id="current-pw" class="input-box" placeholder="기존 비밀번호">
-            <input type="password" id="new-pw" class="input-box" placeholder="새 비밀번호">
-            <input type="password" id="confirm-pw" class="input-box" placeholder="새 비밀번호 확인">
-            <button class="confirm-btn" onclick="changePassword()">변경하기</button>
-        </div>
-    </div>
-
-    <div id="badge-list-modal" class="modal-overlay">
-        <div class="modal-content">
-            <img src="back.png" class="modal-back-btn" onclick="closeBadgeListModal()" alt="뒤로가기">
-            <div class="modal-title">전체 배지 목록 (3x4)</div>
-            <div id="badge-list-grid" class="badge-list-grid"></div>
-        </div>
-    </div>
-
-    <script>
-        let currentUser = null;
-        let userInfo = {};
-        let savingData = [];
-        let challengesData = [];
-        
-        const badgeConfig = [
-            { id: 1, img: 'badge1.png', name: '새싹 배지', desc: '첫 저금 완료시' },
-            { id: 2, img: 'badge2.png', name: '30일 배지', desc: '만난지 30일 이상일시' },
-            { id: 3, img: 'badge3.png', name: '챌린지 배지', desc: '첫 챌린지 완료시' },
-            { id: 4, img: 'badge4.png', name: '금메달 배지', desc: '30회 이상 저금 달성' },
-            { id: 5, img: 'badge5.png', name: '1M 배지', desc: '누적 저금 100만원 달성' },
-            { id: 6, img: 'badge6.png', name: '도약 배지', desc: '0원 지출 챌린지 성공' },
-            { id: 7, img: 'badge7.png', name: '트리플 금메달', desc: '90회 이상 저금 달성' },
-            { id: 8, img: 'badge8.png', name: '참 잘했어요', desc: '목표 저금액 달성 (이번 달)' },
-            { id: 9, img: 'badge9.png', name: '부자 배지', desc: '한번에 10만원 이상 저금' },
-            { id: 10, img: 'badge10.png', name: '100 배지', desc: '챌린지 성공 100회 달성' },
-            { id: 11, img: 'badge11.png', name: '100M 배지', desc: '누적 저금 1억원 달성' },
-            { id: 12, img: 'badge12.png', name: '행복한 돼지', desc: '목표 저금액 10회 달성' }
-        ];
-
-        let myBadges = {}; 
-        let badgeOrder = [];
-
-        window.onload = function() {
-            const savedUser = localStorage.getItem('loginUser');
-            if(!savedUser) { alert("로그인이 필요합니다."); location.href='login.html'; return; }
-            currentUser = JSON.parse(savedUser);
-
-            const savedOrder = localStorage.getItem(`badgeOrder_${currentUser.id}`);
-            if(savedOrder) badgeOrder = JSON.parse(savedOrder);
-            else {
-                badgeOrder = badgeConfig.map(b => b.id);
-                localStorage.setItem(`badgeOrder_${currentUser.id}`, JSON.stringify(badgeOrder));
-            }
-
-            loadAllData();
-        };
-
-        function logout() {
-            if(confirm("로그아웃 하시겠습니까?")) {
-                localStorage.removeItem('loginUser');
-                location.href = 'login.html';
-            }
-        }
-
-        async function loadAllData() {
-            try {
-                const resUser = await fetch(`http://localhost:3000/api/user/${currentUser.id}`);
-                userInfo = await resUser.json();
-                const resSave = await fetch(`http://localhost:3000/api/savings/${currentUser.id}`);
-                savingData = await resSave.json();
-                const resChal = await fetch(`http://localhost:3000/api/challenges/${currentUser.id}`);
-                challengesData = await resChal.json();
-
-                checkBadges();
-                renderProfile();
-                renderMainBadges();
-                checkNewBadges();
-
-            } catch (err) { console.error("데이터 로드 실패:", err); }
-        }
-
-        function checkBadges() {
-            myBadges = {};
-            const totalSaved = savingData.reduce((acc, cur) => acc + cur.amount, 0);
-            
-            const joinDate = userInfo.created_at ? new Date(userInfo.created_at) : new Date();
-            const now = new Date();
-            joinDate.setHours(0,0,0,0);
-            now.setHours(0,0,0,0);
-            const daysActive = Math.floor((now - joinDate) / (1000*60*60*24)) + 1;
-
-            const successChallenges = challengesData.filter(c => c.status === 'success');
-            const saveCount = savingData.length;
-            const goalAmount = 50000; 
-
-            const unlock = (id) => { myBadges[id] = new Date().toISOString().split('T')[0]; };
-
-            if(saveCount >= 1) unlock(1);
-            if(daysActive >= 30) unlock(2);
-            if(successChallenges.length >= 1) unlock(3);
-            if(saveCount >= 30) unlock(4);
-            if(totalSaved >= 1000000) unlock(5);
-            if(successChallenges.some(c => c.title.includes('0원'))) unlock(6);
-            if(saveCount >= 90) unlock(7);
-            if(totalSaved >= goalAmount) unlock(8);
-            if(savingData.some(d => d.amount >= 100000)) unlock(9);
-            if(successChallenges.length >= 100) unlock(10);
-            if(totalSaved >= 100000000) unlock(11);
-            if(totalSaved >= 10000000) unlock(12);
-        }
-
-        function checkNewBadges() {
-            let seenBadges = JSON.parse(localStorage.getItem(`seenBadges_${currentUser.id}`)) || [];
-            const acquiredIds = Object.keys(myBadges).map(Number);
-            const newBadges = acquiredIds.filter(id => !seenBadges.includes(id));
-
-            if(newBadges.length > 0) {
-                const firstNewId = newBadges[0];
-                const badge = badgeConfig.find(b => b.id === firstNewId);
-                showToast(`🎉 [${badge.name}] 획득!`);
-                seenBadges.push(firstNewId);
-                localStorage.setItem(`seenBadges_${currentUser.id}`, JSON.stringify(seenBadges));
-            }
-        }
-
-        function showToast(msg) {
-            const toast = document.getElementById('mission-toast');
-            toast.innerText = msg;
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 3000);
-        }
-
-        function renderProfile() {
-            document.getElementById('user-nickname').innerText = userInfo.nickname || currentUser.nickname;
-            const total = savingData.reduce((acc, cur) => acc + cur.amount, 0);
-            document.getElementById('total-saved-display').innerText = total.toLocaleString();
-            
-            const joinDate = userInfo.created_at ? new Date(userInfo.created_at) : new Date();
-            const now = new Date();
-            joinDate.setHours(0,0,0,0);
-            now.setHours(0,0,0,0);
-            const days = Math.floor((now - joinDate) / (1000*60*60*24)) + 1;
-            
-            document.getElementById('days-active-display').innerText = days + "일";
-        }
-
-        function renderMainBadges() {
-            const grid = document.getElementById('badge-grid');
-            grid.innerHTML = "";
-            const acquiredCount = Object.keys(myBadges).length;
-            document.getElementById('badge-count-display').innerText = `(${acquiredCount}/12)`;
-
-            const top6Ids = badgeOrder.slice(0, 6);
-            top6Ids.forEach(id => {
-                const badge = badgeConfig.find(b => b.id === id);
-                const isAcquired = myBadges[id];
-                const item = document.createElement('div');
-                item.className = 'badge-item';
-                item.onclick = () => showBadgePopup(badge);
-                const imgClass = isAcquired ? 'badge-img unlocked' : 'badge-img';
-                item.innerHTML = `<img src="${badge.img}" class="${imgClass}" onerror="this.src='badge1.png'">`;
-                grid.appendChild(item);
-            });
-        }
-
-        function openBadgeListModal() {
-            const grid = document.getElementById('badge-list-grid');
-            grid.innerHTML = "";
-            
-            badgeOrder.forEach((id) => {
-                const badge = badgeConfig.find(b => b.id === id);
-                const isAcquired = myBadges[id];
-                
-                const item = document.createElement('div');
-                item.className = 'badge-item draggable-badge';
-                item.draggable = true; 
-                item.dataset.badgeId = id; 
-
-                item.onclick = (e) => {
-                    if(!item.classList.contains('dragging')) {
-                        showBadgePopup(badge);
-                    }
-                };
-
-                const imgClass = isAcquired ? 'badge-img unlocked' : 'badge-img';
-                item.innerHTML = `<img src="${badge.img}" class="${imgClass}" onerror="this.src='badge1.png'">`;
-                
-                item.addEventListener('dragstart', handleDragStart);
-                item.addEventListener('dragover', handleDragOver);
-                item.addEventListener('drop', handleDrop);
-                item.addEventListener('dragend', handleDragEnd);
-
-                grid.appendChild(item);
-            });
-            document.getElementById('badge-list-modal').classList.add('open');
-        }
-
-        let draggedItem = null;
-        function handleDragStart(e) {
-            draggedItem = this;
-            e.dataTransfer.effectAllowed = 'move';
-            setTimeout(() => this.classList.add('dragging'), 0);
-        }
-        function handleDragOver(e) {
-            e.preventDefault(); 
-            e.dataTransfer.dropEffect = 'move';
-            return false;
-        }
-        function handleDrop(e) {
-            e.stopPropagation();
-            if (draggedItem !== this) {
-                const grid = document.getElementById('badge-list-grid');
-                const allItems = [...grid.children];
-                const draggedIdx = allItems.indexOf(draggedItem);
-                const droppedIdx = allItems.indexOf(this);
-
-                if (draggedIdx < droppedIdx) {
-                    grid.insertBefore(draggedItem, this.nextSibling);
-                } else {
-                    grid.insertBefore(draggedItem, this);
-                }
-                updateBadgeOrder();
-            }
-            return false;
-        }
-        function handleDragEnd(e) {
-            this.classList.remove('dragging');
-            draggedItem = null;
-        }
-
-        function updateBadgeOrder() {
-            const grid = document.getElementById('badge-list-grid');
-            const newOrder = [];
-            grid.querySelectorAll('.badge-item').forEach(item => {
-                newOrder.push(parseInt(item.dataset.badgeId));
-            });
-            badgeOrder = newOrder;
-            localStorage.setItem(`badgeOrder_${currentUser.id}`, JSON.stringify(badgeOrder));
-        }
-
-        function closeBadgeListModal() {
-            closeModal('badge-list-modal');
-            renderMainBadges();
-        }
-
-        function saveNickname() {
-            const newName = document.getElementById('new-nickname').value;
-            if(!newName) return;
-
-            fetch('http://localhost:3000/api/user/update', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ id: currentUser.id, nickname: newName })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.success) {
-                    alert("닉네임이 변경되었습니다.");
-                    userInfo.nickname = newName;
-                    renderProfile();
-                    closeModal('edit-modal');
-                } else alert("변경 실패");
-            });
-        }
-
-        // [추가] 비밀번호 변경 로직
-        function changePassword() {
-            const currentPw = document.getElementById('current-pw').value;
-            const newPw = document.getElementById('new-pw').value;
-            const confirmPw = document.getElementById('confirm-pw').value;
-
-            if(!currentPw || !newPw || !confirmPw) {
-                alert("모든 내용을 입력해주세요."); return;
-            }
-            if(newPw !== confirmPw) {
-                alert("새 비밀번호가 일치하지 않습니다."); return;
-            }
-
-            fetch('http://localhost:3000/api/user/password', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ 
-                    id: currentUser.id, 
-                    currentPassword: currentPw, 
-                    newPassword: newPw 
-                })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if(data.success) {
-                    alert("비밀번호가 변경되었습니다.");
-                    closeModal('pw-modal');
-                    // 입력창 초기화
-                    document.getElementById('current-pw').value = "";
-                    document.getElementById('new-pw').value = "";
-                    document.getElementById('confirm-pw').value = "";
-                } else {
-                    alert(data.message);
-                }
-            })
-            .catch(err => alert("서버 오류: " + err));
-        }
-
-        function showBadgePopup(badge) {
-            const popup = document.getElementById('badge-popup');
-            const acquiredDate = myBadges[badge.id];
-            document.getElementById('bp-img').src = badge.img;
-            document.getElementById('bp-title').innerText = badge.name;
-            document.getElementById('bp-desc').innerText = badge.desc;
-            
-            const dateEl = document.getElementById('bp-date');
-            if(acquiredDate) {
-                dateEl.innerText = `획득일: ${acquiredDate}`;
-                dateEl.style.color = '#FF6B6B';
-                document.getElementById('bp-img').className = 'bp-img unlocked';
-            } else {
-                dateEl.innerText = "미획득";
-                dateEl.style.color = '#AAA';
-                document.getElementById('bp-img').className = 'bp-img';
-            }
-            popup.classList.add('show');
-        }
-
-        function closeBadgePopup() { document.getElementById('badge-popup').classList.remove('show'); }
-        function openEditModal() { document.getElementById('new-nickname').value = userInfo.nickname || currentUser.nickname; document.getElementById('edit-modal').classList.add('open'); }
-        function openPasswordModal() { document.getElementById('pw-modal').classList.add('open'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-    </script>
-</body>
-</html>
+// 서버 시작
+app.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+});
