@@ -4,17 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>저축 앱 - 시작하기</title>
-    
-    <script>
-        // 페이지 로드 즉시 실행
-        // localStorage에 'loginUser' 정보가 있다면 회원으로 간주 -> home.html로 이동
-        const savedUser = localStorage.getItem('loginUser');
-        if (savedUser) {
-            location.replace('home.html'); // 뒤로가기 방지를 위해 replace 사용
-        }
-        // 없다면(최초 접속 또는 로그아웃 상태) 아래 HTML 내용을 그대로 보여줌
-    </script>
-
     <style>
         /* [기본 설정] */
         body, html {
@@ -22,8 +11,8 @@
             padding: 0;
             width: 100%;
             height: 100%;
-            font-family: 'Pretendard', sans-serif;
-            overflow: hidden;
+            font-family: 'Pretendard', sans-serif; /* 폰트 예시 */
+            overflow: hidden; /* 스크롤 방지 */
         }
 
         /* [전체 컨테이너] */
@@ -37,7 +26,7 @@
         .slide {
             width: 100%;
             height: 100%;
-            display: none;
+            display: none; /* 기본적으로 숨김 */
             flex-direction: column;
             justify-content: center;
             align-items: center;
@@ -48,21 +37,52 @@
             transition: opacity 0.3s ease;
         }
 
-        .slide.active { display: flex; }
+        /* 활성화된 슬라이드만 보이기 */
+        .slide.active {
+            display: flex;
+        }
 
-        .bg-1 { background-color: #F8E1EB; }
-        .bg-2 { background-color: #FFEBD6; }
-        .bg-3 { background-color: #FEF9E3; }
-        .bg-4 { background-color: #F5F2EF; }
+        /* [배경색 설정 - 이미지 기반 추출] */
+        .bg-1 { background-color: #F8E1EB; } /* 핑크 */
+        .bg-2 { background-color: #FFEBD6; } /* 살구색 */
+        .bg-3 { background-color: #FEF9E3; } /* 연노랑 */
+        .bg-4 { background-color: #F5F2EF; } /* 회색빛 흰색 */
 
-        .slide-img { width: 200px; height: auto; margin-bottom: 40px; }
-        .slide-text { font-size: 20px; font-weight: bold; color: #333; margin-bottom: 30px; padding: 0 20px; word-break: keep-all; }
+        /* [이미지 스타일] */
+        .slide-img {
+            width: 200px; /* 크기 조절 가능 */
+            height: auto;
+            margin-bottom: 40px;
+        }
 
-        /* [페이지네이션 점] */
-        .dots-container { display: flex; gap: 10px; margin-bottom: 40px; }
-        .dot { width: 10px; height: 10px; border-radius: 50%; background-color: #D9D9D9; }
-        .dot.active { background-color: #FF4081; }
-        
+        /* [텍스트 스타일] */
+        .slide-text {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 30px;
+            padding: 0 20px;
+            word-break: keep-all;
+        }
+
+        /* [페이지네이션 점 (Dots)] */
+        .dots-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 40px;
+        }
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #D9D9D9; /* 비활성 색 */
+        }
+
+        .dot.active {
+            background-color: #FF4081; /* 1번 핑크 포인트 */
+        }
+        /* 각 화면별 점 색상 커스텀 (이미지 참조) */
         .slide:nth-child(2) .dot.active { background-color: #FF6B6B; }
         .slide:nth-child(3) .dot.active { background-color: #FFD54F; }
         .slide:nth-child(4) .dot.active { background-color: #9C27B0; }
@@ -74,18 +94,22 @@
             padding: 15px;
             border: none;
             border-radius: 12px;
-            background-color: #FFD54F;
+            background-color: #FFD54F; /* 노란색 버튼 */
             color: #333;
             font-size: 18px;
             font-weight: bold;
             cursor: pointer;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
         }
-        .action-btn:hover { background-color: #FFCA28; }
+
+        .action-btn:hover {
+            background-color: #FFCA28;
+        }
 
     </style>
 </head>
 <body>
+
     <div class="container">
         <div class="slide bg-1 active" id="slide-1">
             <img src="splash_piggy.png" alt="저금통" class="slide-img">
@@ -125,17 +149,33 @@
     </div>
 
     <script>
+        // [추가된 로직]: 최초 실행 여부 확인
+        window.onload = function() {
+            // 'hasVisited' 키가 있으면 (즉, 이미 방문한 적이 있으면)
+            if (localStorage.getItem('hasVisited')) {
+                location.href = 'login.html'; // 바로 로그인 화면으로 이동
+                return;
+            }
+            // 최초 실행이라면 그대로 스플래시 화면을 보여줍니다.
+        }
+
+        // 다음 슬라이드로 넘어가는 함수
         function nextSlide(nextIndex) {
+            // 현재 활성화된 슬라이드 찾기
             const currentSlide = document.querySelector('.slide.active');
+            // 다음 보여줄 슬라이드 찾기
             const nextSlideDiv = document.getElementById('slide-' + nextIndex);
 
             if(currentSlide && nextSlideDiv) {
-                currentSlide.classList.remove('active');
-                nextSlideDiv.classList.add('active');
+                currentSlide.classList.remove('active'); // 현재꺼 숨김
+                nextSlideDiv.classList.add('active');    // 다음꺼 보임
             }
         }
 
+        // 마지막 '시작하기' 버튼 누를 때 실행되는 함수
         function goToLogin() {
+            // [추가된 로직]: 방문했음을 기록
+            localStorage.setItem('hasVisited', 'true'); 
             location.href = 'login.html'; 
         }
     </script>

@@ -13,34 +13,14 @@
         
         #challenge-list-container { display: flex; flex-direction: column; gap: 20px; }
         
-        /* 챌린지 카드 디자인 */
         .challenge-card { background-color: #FFEBEB; border-radius: 20px; padding: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; position: relative; }
-        
-        /* 카테고리 폰트 수정됨 */
-        .card-cat { font-size: 16px; font-weight: bold; color: #666; margin-bottom: 8px; }
+        .card-cat { font-size: 14px; color: #888; margin-bottom: 5px; }
         .card-title { font-size: 22px; font-weight: 800; margin-bottom: 5px; line-height: 1.3; }
-        
-        /* 날짜 폰트 수정됨 */
-        .card-date { font-size: 14px; font-weight: bold; color: #555; margin-bottom: 15px; }
-        .d-day-red { color: #FF6B6B; font-weight: 900; font-size: 15px; margin-left: 5px; }
-        
-        /* 게이지바 레이아웃 수정됨 */
-        .progress-container {
-            display: flex;
-            align-items: center; 
-            gap: 10px; 
-            margin-bottom: 20px;
-        }
-        .progress-wrapper { flex: 1; background-color: #FFF; border-radius: 10px; height: 10px; overflow: hidden; }
+        .card-date { font-size: 13px; color: #666; margin-bottom: 15px; }
+        .d-day-red { color: #FF6B6B; font-weight: bold; }
+        .progress-wrapper { width: 100%; background-color: #FFF; border-radius: 10px; height: 10px; margin-bottom: 5px; overflow: hidden; }
         .progress-bar { height: 100%; background-color: #FFD54F; width: 0%; transition: width 0.5s ease; border-radius: 10px; }
-        
-        .progress-text { 
-            font-size: 13px; 
-            font-weight: bold; 
-            color: #666; 
-            white-space: nowrap; 
-        }
-
+        .progress-text { text-align: right; font-size: 12px; color: #666; margin-bottom: 20px; }
         .card-btns { display: flex; gap: 10px; }
         .card-btn { flex: 1; padding: 12px; border: none; border-radius: 30px; font-weight: bold; font-size: 13px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 5px; }
         .btn-add-money { background-color: #FFD54F; color: #333; }
@@ -49,7 +29,6 @@
         .add-challenge-box { background-color: #FFE082; border-radius: 20px; min-height: 100px; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.05); font-size: 18px; font-weight: bold; gap: 10px; margin-top: 10px; }
         .history-btn { width: 100%; padding: 15px; background-color: #FFCC80; border: none; border-radius: 30px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; }
 
-        /* 네비게이션 바 */
         .navbar { height: 110px; background-color: transparent; border-top: 4px solid #D9D9D9; display: flex; justify-content: space-evenly; align-items: center; padding-bottom: 10px; z-index: 50; flex-shrink: 0; }
         .nav-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; border: none; background: none; gap: 6px; text-decoration: none; }
         .nav-icon-box { width: 58px; height: 58px; background-color: #FFD54F; border-radius: 14px; display: flex; justify-content: center; align-items: center; box-shadow: 0 3px 6px rgba(0,0,0,0.1); transition: all 0.3s ease; }
@@ -59,68 +38,26 @@
         .nav-item.active .nav-icon-img { filter: brightness(0) invert(1); }
         .nav-item.active .nav-text { color: #333; font-weight: bold; }
 
-        /* 모달 공통 */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center; }
         .modal-overlay.open { display: flex; }
         .modal-content { background-color: #FFF; width: 90%; max-width: 360px; border-radius: 20px; padding: 25px; box-sizing: border-box; position: relative; max-height: 85%; overflow-y: auto; }
         .modal-title { font-size: 20px; font-weight: bold; text-align: center; margin-bottom: 20px; }
-        
-        .modal-back-btn { 
-            position: absolute; top: 20px; left: 20px; 
-            width: 24px; height: 24px; cursor: pointer; 
-            transition: transform 0.2s;
-        }
-        .modal-back-btn:hover { transform: scale(1.1); }
+        .close-btn { position: absolute; top: 20px; left: 20px; font-size: 20px; cursor: pointer; font-weight: bold; }
 
         .step-block { display: flex; flex-direction: column; gap: 15px; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px dashed #DDD; }
         .step-block:last-of-type { border-bottom: none; margin-bottom: 0; }
         .step-label { font-size: 16px; font-weight: bold; color: #555; }
-        
-        .category-grid { 
-            display: grid; 
-            grid-template-columns: repeat(4, 1fr); 
-            gap: 10px; 
-        }
-        .cat-item { 
-            background-color: transparent; 
-            border: none; 
-            padding: 0; 
-            cursor: pointer; 
-            display: flex; flex-direction: column; align-items: center;
-        }
-        .cat-item span { display: none; } 
-        .cat-img { width: 60px; height: 60px; object-fit: contain; transition: transform 0.2s; }
-        .cat-item:hover .cat-img { transform: scale(1.1); }
-        .cat-item.selected .cat-img { 
-            transform: scale(1.15); 
-            filter: drop-shadow(0 4px 6px rgba(255, 213, 79, 0.6)); 
-        }
-
+        .category-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .cat-item { background-color: #F8F8F8; border-radius: 15px; padding: 15px; cursor: pointer; border: 2px solid transparent; display: flex; flex-direction: column; align-items: center; }
+        .cat-item.selected { border-color: #FF6B6B; background-color: #FFF0F0; }
+        .cat-img { width: 40px; height: 40px; object-fit: contain; margin-bottom: 5px; }
         .chip-container { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
         .chip { padding: 8px 15px; background-color: #FFE082; border-radius: 20px; font-size: 14px; cursor: pointer; border: 2px solid transparent; }
         .chip.selected { border-color: #FF6B6B; background-color: #FFD54F; font-weight: bold; }
-        
         .money-options { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
-        .money-chip { padding: 10px 20px; background-color: #EFEBE6; border-radius: 20px; cursor: pointer; border: 2px solid transparent; font-size: 14px; }
+        .money-chip { padding: 10px 20px; background-color: #EFEBE6; border-radius: 20px; cursor: pointer; border: 2px solid transparent; }
         .money-chip.selected { border-color: #FF6B6B; background-color: #FFD54F; font-weight: bold; }
-        
-        #custom-amount-wrapper { display: none; width: 100%; margin-top: 10px; }
-        #custom-amount-wrapper.show { display: block; animation: slideDown 0.3s ease; }
-        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-
         .input-box { width: 100%; padding: 15px; background-color: #EFEBE6; border: none; border-radius: 10px; font-size: 16px; text-align: center; font-weight: bold; box-sizing: border-box; }
-        
-        /* [수정됨] 금액 입력창 밑줄 스타일 (Home과 동일) */
-        .input-underline {
-            width: 100%; padding: 10px 5px;
-            background-color: transparent;
-            border: none;
-            border-bottom: 3px solid #333; /* 굵은 밑줄 */
-            font-size: 32px; /* 큰 글씨 */
-            text-align: center; font-weight: 800;
-            margin-bottom: 20px; outline: none;
-        }
-
         .date-picker-container { display: flex; gap: 10px; justify-content: center; align-items: center; margin-bottom: 10px; }
         .date-input { padding: 10px; border-radius: 10px; border: 1px solid #ddd; background: #EFEBE6; width: 130px;}
         .date-result { text-align: center; color: #FF6B6B; font-weight: bold; font-size: 18px; margin-bottom: 20px; }
@@ -138,7 +75,20 @@
         .ongoing .h-status-badge { background-color: #FFD54F; }
         .fail .h-status-badge { background-color: #FF6B6B; color: white; }
         .success .h-status-badge { background-color: #4D96FF; color: white; }
+        .h-progress-bar { width: 100%; height: 8px; background: #EEE; border-radius: 5px; overflow: hidden; }
+        .h-fill { height: 100%; border-radius: 5px; }
+        .ongoing .h-fill { background-color: #FFD54F; }
+        .fail .h-fill { background-color: #FF6B6B; }
+        .success .h-fill { background-color: #4D96FF; }
         .h-total-saved { margin-top: 10px; font-weight: bold; color: #4D96FF; font-size: 14px; }
+
+        /* [추가됨]: 마이너스 버튼 스타일 */
+        .chip.negative {
+            background-color: #FFCDD2; /* 연한 빨강 */
+            color: #B71C1C; /* 진한 빨강 */
+            border-color: #FF6B6B;
+        }
+
     </style>
 </head>
 <body>
@@ -173,17 +123,22 @@
 
     <div id="add-money-modal" class="modal-overlay">
         <div class="modal-content">
-            <img src="back.png" class="modal-back-btn" onclick="closeModal('add-money-modal')" alt="뒤로가기">
+            <div class="close-btn" onclick="closeModal('add-money-modal')">←</div>
             <div class="modal-title">절약 금액 추가하기</div>
-            
-            <input type="number" id="money-input" class="input-underline" placeholder="0">
-            
+            <input type="number" id="money-input" class="input-box" placeholder="0" style="font-size:32px; margin-bottom:10px;">
             <div style="text-align:center; color:#888; margin-bottom:20px; font-size:12px;">(현재 누적 절약 금액: <span id="modal-current-saved">0</span>원)</div>
-            <div class="money-options" style="justify-content:center; margin-bottom:20px;">
+            
+            <div class="money-options" style="justify-content:center; margin-bottom:10px;">
                 <button class="chip" onclick="addInputMoney(100)">+100</button>
                 <button class="chip" onclick="addInputMoney(500)">+500</button>
                 <button class="chip" onclick="addInputMoney(1000)">+1,000</button>
                 <button class="chip" onclick="addInputMoney(10000)">+1만</button>
+            </div>
+            <div class="money-options" style="justify-content:center; margin-bottom:20px;">
+                <button class="chip negative" onclick="addInputMoney(-100)">-100</button>
+                <button class="chip negative" onclick="addInputMoney(-500)">-500</button>
+                <button class="chip negative" onclick="addInputMoney(-1000)">-1,000</button>
+                <button class="chip negative" onclick="addInputMoney(-10000)">-1만</button>
             </div>
             <button class="confirm-btn" onclick="confirmAddMoney()">완료</button>
         </div>
@@ -191,16 +146,15 @@
 
     <div id="add-challenge-modal" class="modal-overlay">
         <div class="modal-content">
-            <img src="back.png" class="modal-back-btn" onclick="closeModal('add-challenge-modal')" alt="뒤로가기">
+            <div class="close-btn" onclick="closeModal('add-challenge-modal')">←</div>
             <div class="modal-title">챌린지 추가</div>
-            
             <div class="step-block">
                 <div class="step-label">Step 1. 카테고리 선택</div>
                 <div class="category-grid">
-                    <div class="cat-item" onclick="selectCategory('meal', this)"><img src="cat_meal.png" class="cat-img"></div>
-                    <div class="cat-item" onclick="selectCategory('transport', this)"><img src="cat_transport.png" class="cat-img"></div>
-                    <div class="cat-item" onclick="selectCategory('shopping', this)"><img src="cat_shopping.png" class="cat-img"></div>
-                    <div class="cat-item" onclick="selectCategory('leisure', this)"><img src="cat_leisure.png" class="cat-img"></div>
+                    <div class="cat-item" onclick="selectCategory('meal', this)"><img src="cat_meal.png" class="cat-img"><span>식사</span></div>
+                    <div class="cat-item" onclick="selectCategory('transport', this)"><img src="cat_transport.png" class="cat-img"><span>교통</span></div>
+                    <div class="cat-item" onclick="selectCategory('shopping', this)"><img src="cat_shopping.png" class="cat-img"><span>쇼핑</span></div>
+                    <div class="cat-item" onclick="selectCategory('leisure', this)"><img src="cat_leisure.png" class="cat-img"><span>여가</span></div>
                 </div>
             </div>
             <div class="step-block">
@@ -214,11 +168,9 @@
                     <div class="money-chip" onclick="selectTargetAmount(5000, this)">5,000원</div>
                     <div class="money-chip" onclick="selectTargetAmount(10000, this)">10,000원</div>
                     <div class="money-chip" onclick="selectTargetAmount(30000, this)">30,000원</div>
-                    <div class="money-chip" onclick="showCustomInput(this)">직접 입력</div>
                 </div>
-                <div id="custom-amount-wrapper">
-                    <input type="number" id="custom-target-amount" class="input-box" placeholder="금액을 입력하세요">
-                </div>
+                <div style="margin-top:10px; font-weight:bold; color:#888;">직접 입력</div>
+                <input type="number" id="custom-target-amount" class="input-box" placeholder="직접 입력" oninput="selectTargetAmount(this.value, null)">
             </div>
             <div class="step-block">
                 <div class="step-label">Step 4. 기간 선택</div>
@@ -239,7 +191,7 @@
 
     <div id="history-modal" class="modal-overlay">
         <div class="modal-content">
-            <img src="back.png" class="modal-back-btn" onclick="closeModal('history-modal')" alt="뒤로가기">
+            <div class="close-btn" onclick="closeModal('history-modal')">←</div>
             <div class="modal-title">역대 챌린지 목록</div>
             <ul id="history-list" class="history-list"></ul>
             <button id="history-more-btn" class="confirm-btn" style="background:#EEE; font-size:14px; margin-top:10px;" onclick="showMoreHistory()">⬇ 더 보기</button>
@@ -259,53 +211,186 @@
             'leisure': ['미술', '음악', '스포츠', '문학', '휴식', '여행', '게임']
         };
 
-        const catMap = {
-            'meal': '식사',
-            'transport': '교통',
-            'shopping': '쇼핑',
-            'leisure': '여가'
-        };
-
         window.onload = function() {
+            // 로그인 확인
             const savedUser = localStorage.getItem('loginUser');
             if(!savedUser) { alert("로그인이 필요합니다."); location.href='login.html'; return; }
             currentUser = JSON.parse(savedUser);
+
+            // 데이터 로드
             loadServerData();
         };
 
+        // [핵심] 서버에서 챌린지 목록 가져오기
         function loadServerData() {
+            // Render 배포 환경에서는 상대 경로 사용 권장
             fetch(`/api/challenges/${currentUser.id}`)
             .then(res => res.json())
             .then(data => {
-                challenges = data;
+                challenges = data; // DB 컬럼명(snake_case) 그대로 사용
                 checkChallengeStatus();
                 renderMain();
             })
-            .catch(err => {
-                console.error("챌린지 로드 실패:", err);
-                challenges = [];
+            .catch(err => console.error(err));
+        }
+
+        // [핵심] 챌린지 성공 여부 체크 (성공시 DB 업데이트)
+        function checkChallengeStatus() {
+            const today = new Date(); today.setHours(0,0,0,0);
+            
+            challenges.forEach(c => {
+                if(c.status === 'ongoing') {
+                    // DB Date -> JS Date 변환
+                    const end = new Date(c.end_date);
+                    if(today > end) {
+                        // 1. 챌린지 상태 'success'로 업데이트
+                        // saved_amount는 그대로 사용
+                        updateChallengeStatus(c.id, c.saved_amount, 'success');
+
+                        // 2. 저금 내역에 보상 추가 (DB 연동)
+                        // (누적액 계산을 위해 먼저 저금내역 조회)
+                        fetch(`/api/savings/${currentUser.id}`)
+                        .then(res => res.json())
+                        .then(history => {
+                            // 현재 총액 계산
+                            // DB 데이터 구조에 'balance' 필드가 있다면 그것을 사용하는 것이 좋으나, 
+                            // 현재는 savings 테이블의 모든 amount를 합산하는 방식으로 구현함.
+                            let currentTotal = history.reduce((acc, cur) => acc + cur.amount, 0);
+                            let newBalance = currentTotal + c.saved_amount;
+                            const todayStr = new Date().toISOString().split('T')[0];
+
+                            // 저금 API 호출
+                            fetch('/api/save', {
+                                method: 'POST',
+                                headers: {'Content-Type': 'application/json'},
+                                body: JSON.stringify({
+                                    userId: currentUser.id,
+                                    category: c.category,
+                                    subCategory: `[챌린지 성공] ${c.title}`,
+                                    amount: c.saved_amount,
+                                    memo: '챌린지 달성 보상',
+                                    balance: newBalance,
+                                    dateStr: todayStr
+                                })
+                            });
+                            alert(`🎉 챌린지 성공! ${c.title}\n모은 금액이 저금통에 반영되었습니다.`);
+                        });
+                    }
+                }
             });
         }
 
+        // 챌린지 상태 업데이트 API 호출
+        function updateChallengeStatus(id, savedAmount, status) {
+            fetch('/api/challenge/update', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ id, savedAmount, status })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) loadServerData(); // 새로고침
+            });
+        }
+
+        // === 화면 렌더링 ===
+        function renderMain() {
+            const listContainer = document.getElementById('challenge-list-container');
+            listContainer.innerHTML = "";
+
+            // DB에서 받은 데이터는 이미 최신순이 아닐 수 있으므로 정렬하는 것이 좋습니다.
+            const ongoingList = challenges.filter(c => c.status === 'ongoing')
+                                            .sort((a, b) => new Date(a.start_date) - new Date(b.start_date)); // 시작일 순으로 정렬
+
+            if(ongoingList.length === 0) {
+                listContainer.innerHTML = "<div style='text-align:center; color:#aaa; padding:20px;'>진행 중인 챌린지가 없습니다.</div>";
+            }
+
+            ongoingList.forEach(c => {
+                // DB 컬럼명 사용 (c.start_date 등)
+                const startStr = c.start_date.split('T')[0];
+                const endStr = c.end_date.split('T')[0];
+
+                // D-Day
+                const today = new Date(); today.setHours(0,0,0,0);
+                const end = new Date(endStr);
+                const diff = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
+                const dDayText = (diff < 0) ? "종료" : `D-${diff}`;
+
+                // Progress (날짜)
+                const start = new Date(startStr);
+                const totalDays = (end - start) / (1000 * 60 * 60 * 24) + 1;
+                const passed = (today - start) / (1000 * 60 * 60 * 24) + 1;
+                let pct = Math.floor((passed/totalDays)*100);
+                if(pct>100) pct=100; if(pct<0) pct=0;
+
+                const html = `
+                    <div class="challenge-card">
+                        <div class="card-cat">[${c.category}] - ${c.sub_category}</div>
+                        <div class="card-title">${c.title}</div>
+                        <div class="card-date"><span>${startStr} ~ ${endStr}</span> <span class="d-day-red">${dDayText}</span></div>
+                        <div class="progress-wrapper"><div class="progress-bar" style="width:${pct}%"></div></div>
+                        <div class="progress-text">${Math.min(passed, totalDays)} / ${totalDays}일</div>
+                        <div class="card-btns">
+                            <button class="card-btn btn-add-money" onclick="openAddMoneyModal(${c.id}, ${c.saved_amount})">
+                                💰 절약 금액 추가<br><span style="font-size:10px; font-weight:normal;">(누적 ${c.saved_amount.toLocaleString()}원)</span>
+                            </button>
+                            <button class="card-btn btn-give-up" onclick="giveUpChallenge(${c.id})">❌ 포기하기</button>
+                        </div>
+                    </div>`;
+                listContainer.innerHTML += html;
+            });
+        }
+
+        // === 기능 함수들 ===
+        function openAddMoneyModal(id, currentSaved) {
+            selectedChallengeId = id;
+            document.getElementById('money-input').value = "";
+            document.getElementById('modal-current-saved').innerText = currentSaved.toLocaleString();
+            document.getElementById('add-money-modal').classList.add('open');
+        }
+        
+        // [수정됨]: addInputMoney 함수 (음수 처리 포함)
+        function addInputMoney(amt) {
+            const el = document.getElementById('money-input');
+            let currentVal = parseInt(el.value)||0;
+            currentVal += amt;
+            if (currentVal < 0) currentVal = 0; // 금액이 음수가 되지 않도록 방지
+            el.value = currentVal;
+        }
+
+        function confirmAddMoney() {
+            const amt = parseInt(document.getElementById('money-input').value);
+            if(!amt || amt <= 0) return;
+            
+            const target = challenges.find(c => c.id === selectedChallengeId);
+            if(target) {
+                const newSaved = target.saved_amount + amt;
+                updateChallengeStatus(target.id, newSaved, 'ongoing'); // savedAmount 업데이트만 필요
+                closeModal('add-money-modal');
+                alert("금액이 추가되었습니다!");
+            }
+        }
+
+        function giveUpChallenge(id) {
+            if(!confirm("정말 포기하시겠습니까? (실패로 기록됩니다)")) return;
+            const target = challenges.find(c => c.id === id);
+            if(target) {
+                // saved_amount는 그대로 유지하고 status만 'fail'로 업데이트
+                updateChallengeStatus(id, target.saved_amount, 'fail'); 
+                alert("챌린지를 포기했습니다.");
+            }
+        }
+
+        // 챌린지 생성 (서버 전송)
         function createChallenge() {
             const title = document.getElementById('challenge-name-input').value;
-            if(!newChallenge.cat) { alert("카테고리를 선택해주세요 (Step 1)"); return; }
-            if(!newChallenge.sub) { alert("세부 내용을 선택해주세요 (Step 2)"); return; }
-            
-            if(newChallenge.isCustom) {
-                const customVal = document.getElementById('custom-target-amount').value;
-                if(!customVal) { alert("직접 입력할 금액을 적어주세요"); return; }
-                newChallenge.targetAmt = parseInt(customVal);
+            if(!newChallenge.cat || !newChallenge.sub || newChallenge.targetAmt===undefined || !newChallenge.startStr || !title) {
+                alert("모든 정보를 입력해주세요."); return;
             }
-            if(newChallenge.targetAmt === undefined || isNaN(newChallenge.targetAmt)) {
-                alert("지출 항목 금액을 선택하거나 입력해주세요 (Step 3)"); return;
-            }
-
-            if(!newChallenge.startStr || !newChallenge.endStr) { alert("기간을 선택해주세요 (Step 4)"); return; }
-            if(!title) { alert("챌린지 이름을 입력해주세요 (Step 5)"); return; }
 
             fetch('/api/challenge', {
-                method: 'POST', 
+                method: 'POST',
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
                     userId: currentUser.id,
@@ -323,153 +408,54 @@
                     alert("챌린지가 생성되었습니다!");
                     loadServerData();
                     closeModal('add-challenge-modal');
-                } else {
-                    alert("생성 실패: 서버 오류가 발생했습니다.");
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                alert("서버 연결 실패! (서버가 켜져 있는지 확인해주세요)");
+                } else alert("생성 실패");
             });
         }
 
-        function checkChallengeStatus() {
-            const today = new Date(); today.setHours(0,0,0,0);
-            challenges.forEach(c => {
-                if(c.status === 'ongoing') {
-                    const end = new Date(c.end_date);
-                    if(today > end) {
-                        updateChallengeStatus(c.id, c.saved_amount, 'success');
-                        alert(`🎉 챌린지 성공! [${c.title}]`);
-                    }
-                }
-            });
-        }
-
-        function updateChallengeStatus(id, savedAmount, status) {
-            fetch('/api/challenge/update', {
-                method: 'POST', headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ id, savedAmount, status })
-            })
-            .then(res => res.json())
-            .then(data => { if(data.success) loadServerData(); });
-        }
-
-        function renderMain() {
-            const listContainer = document.getElementById('challenge-list-container');
-            listContainer.innerHTML = "";
-            const ongoingList = challenges.filter(c => c.status === 'ongoing');
-
-            if(ongoingList.length === 0) {
-                listContainer.innerHTML = "<div style='text-align:center; color:#aaa; padding:20px;'>진행 중인 챌린지가 없습니다.</div>";
-            }
-
-            ongoingList.forEach(c => {
-                const startStr = c.start_date.split('T')[0];
-                const endStr = c.end_date.split('T')[0];
-                const today = new Date(); today.setHours(0,0,0,0);
-                const end = new Date(endStr);
-                const diff = Math.ceil((end - today) / (1000 * 60 * 60 * 24));
-                const dDayText = (diff < 0) ? "종료" : `D-${diff}`;
-
-                const start = new Date(startStr);
-                const totalDays = Math.round((end - start) / (1000 * 60 * 60 * 24)) + 1;
-                const passed = Math.round((today - start) / (1000 * 60 * 60 * 24)) + 1;
-                
-                let pct = Math.floor((passed/totalDays)*100);
-                if(pct>100) pct=100; if(pct<0) pct=0;
-
-                const currentDayDisplay = Math.min(Math.max(passed, 0), totalDays);
-                const catKorean = catMap[c.category] || c.category;
-
-                const html = `
-                    <div class="challenge-card">
-                        <div class="card-cat">[${catKorean}] - ${c.sub_category}</div>
-                        <div class="card-title">${c.title}</div>
-                        <div class="card-date"><span>${startStr} ~ ${endStr}</span> <span class="d-day-red">${dDayText}</span></div>
-                        
-                        <div class="progress-container">
-                            <div class="progress-wrapper">
-                                <div class="progress-bar" style="width:${pct}%"></div>
-                            </div>
-                            <div class="progress-text">${currentDayDisplay} / ${totalDays}일</div>
-                        </div>
-
-                        <div class="card-btns">
-                            <button class="card-btn btn-add-money" onclick="openAddMoneyModal(${c.id}, ${c.saved_amount})">
-                                💰 추가<br><span style="font-size:10px;">(누적 ${c.saved_amount.toLocaleString()})</span>
-                            </button>
-                            <button class="card-btn btn-give-up" onclick="giveUpChallenge(${c.id})">❌ 포기</button>
-                        </div>
-                    </div>`;
-                listContainer.innerHTML += html;
-            });
-        }
-
-        function openAddMoneyModal(id, currentSaved) {
-            selectedChallengeId = id;
-            document.getElementById('money-input').value = "";
-            document.getElementById('modal-current-saved').innerText = currentSaved.toLocaleString();
-            document.getElementById('add-money-modal').classList.add('open');
-        }
-        function addInputMoney(amt) {
-            const el = document.getElementById('money-input');
-            el.value = (parseInt(el.value)||0) + amt;
-        }
-        function confirmAddMoney() {
-            const amt = parseInt(document.getElementById('money-input').value);
-            if(!amt || amt <= 0) return;
-            const target = challenges.find(c => c.id === selectedChallengeId);
-            if(target) {
-                updateChallengeStatus(target.id, target.saved_amount + amt, 'ongoing');
-                closeModal('add-money-modal');
-                alert("금액이 추가되었습니다!");
-            }
-        }
-        function giveUpChallenge(id) {
-            if(!confirm("정말 포기하시겠습니까?")) return;
-            const target = challenges.find(c => c.id === id);
-            if(target) {
-                updateChallengeStatus(id, target.saved_amount, 'fail');
-                alert("챌린지를 포기했습니다.");
-            }
-        }
-
+        // 역대 목록 (DB 데이터)
         let historyLimit = 3;
         function openHistoryModal() { historyLimit = 3; renderHistory(); document.getElementById('history-modal').classList.add('open'); }
         function renderHistory() {
             const list = document.getElementById('history-list'); list.innerHTML = "";
-            const viewList = challenges.slice(0, historyLimit);
+            // 진행 중이 아닌 목록만 가져와서 최신순으로 정렬
+            const historyList = challenges.filter(c => c.status !== 'ongoing')
+                                            .sort((a, b) => new Date(b.start_date) - new Date(a.start_date)); 
+            
+            const viewList = historyList.slice(0, historyLimit); 
+            
             viewList.forEach(c => {
                 const li = document.createElement('li');
                 li.className = `history-card ${c.status}`;
                 let statusText = (c.status==='fail')?"실패":(c.status==='success')?"성공":"진행 중";
+                let moneyHtml = (c.status==='success') ? `<div class="h-total-saved">+${c.saved_amount.toLocaleString()}원</div>` : "";
+                
+                // 날짜 포맷
                 const startStr = c.start_date.split('T')[0];
                 const endStr = c.end_date.split('T')[0];
-                const catKorean = catMap[c.category] || c.category;
-
+                
+                // 게이지 계산 (생략 - 위와 동일 로직)
+                // ... (간단히 100% or 진행률 표시)
+                
                 li.innerHTML = `
-                    <div class="h-tag">[${catKorean}] - ${c.sub_category}</div>
+                    <div class="h-tag">[${c.category}] - ${c.sub_category}</div>
                     <div class="h-title">${c.title}</div>
                     <div class="h-date">(${startStr} ~ ${endStr})</div>
-                    <div class="h-total-saved">모은 금액: ${c.saved_amount.toLocaleString()}원</div>
+                    ${moneyHtml}
                     <div class="h-status-badge">${statusText}</div>
                 `;
                 list.appendChild(li);
             });
-            document.getElementById('history-more-btn').style.display = (challenges.length > historyLimit) ? 'block' : 'none';
+            if(historyList.length > historyLimit) document.getElementById('history-more-btn').style.display='block';
+            else document.getElementById('history-more-btn').style.display='none';
         }
         function showMoreHistory() { historyLimit += 3; renderHistory(); }
 
-        // --- UI Logic ---
+        // UI 유틸 함수들 (기존과 동일)
         function openAddChallengeModal() {
-            newChallenge = { saved: 0, isCustom: false };
+            newChallenge = { saved: 0 };
             document.querySelectorAll('.cat-item').forEach(el=>el.classList.remove('selected'));
             document.getElementById('chip-area').innerHTML = '<span style="color:#aaa;">카테고리 선택 필요</span>';
             document.getElementById('custom-target-amount').value = "";
-            document.getElementById('custom-amount-wrapper').classList.remove('show');
-            document.querySelectorAll('.money-chip').forEach(c=>c.classList.remove('selected'));
-            
             document.getElementById('challenge-name-input').value = "";
             const today = new Date(); const next = new Date(); next.setDate(today.getDate()+7);
             document.getElementById('start-date').valueAsDate = today;
@@ -477,7 +463,6 @@
             calcDuration();
             document.getElementById('add-challenge-modal').classList.add('open');
         }
-
         function selectCategory(cat, el) {
             newChallenge.cat = cat;
             document.querySelectorAll('.cat-item').forEach(e=>e.classList.remove('selected')); el.classList.add('selected');
@@ -491,23 +476,10 @@
             direct.onclick = () => { const t = prompt("입력"); if(t){ newChallenge.sub=t; document.querySelectorAll('.chip').forEach(c=>c.classList.remove('selected')); direct.classList.add('selected'); }};
             area.appendChild(direct);
         }
-
         function selectTargetAmount(amt, el) {
-            newChallenge.isCustom = false;
             newChallenge.targetAmt = parseInt(amt);
-            document.querySelectorAll('.money-chip').forEach(c=>c.classList.remove('selected')); 
-            if(el) el.classList.add('selected');
-            document.getElementById('custom-amount-wrapper').classList.remove('show');
+            if(el) { document.querySelectorAll('.money-chip').forEach(c=>c.classList.remove('selected')); el.classList.add('selected'); document.getElementById('custom-target-amount').value=""; }
         }
-
-        function showCustomInput(el) {
-            newChallenge.isCustom = true;
-            document.querySelectorAll('.money-chip').forEach(c=>c.classList.remove('selected')); 
-            el.classList.add('selected');
-            document.getElementById('custom-amount-wrapper').classList.add('show');
-            document.getElementById('custom-target-amount').focus();
-        }
-
         function calcDuration() {
             const s = new Date(document.getElementById('start-date').value);
             const e = new Date(document.getElementById('end-date').value);
