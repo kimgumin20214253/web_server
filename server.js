@@ -3,31 +3,28 @@ const cors = require('cors');
 const path = require('path');
 
 // [중요] fs(파일시스템) 제거! 
-// 대신 변수에 저장합니다. (주의: 서버가 재시작되면 데이터가 날아갑니다. 테스트용으로만 쓰세요!)
-let users = [];       // 유저 정보 저장소
-let savings = [];     // 저금 내역 저장소
-let challenges = [];  // 챌린지 내역 저장소
+// Vercel 에러 방지를 위해 변수에 저장합니다.
+let users = [];       
+let savings = [];     
+let challenges = [];  
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
-
-// 정적 파일 연결
 app.use(express.static(__dirname));
 
-// 메인 화면
+// 메인 화면 (index.html 연결)
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// --- API 코드 (파일 대신 위에서 만든 변수 배열을 사용합니다) ---
+// --- API 코드 ---
 
 // 1. 아이디 중복 확인
 app.post('/api/check-id', (req, res) => {
     const { loginId } = req.body;
-    // 파일 읽기(fs) 대신 users 배열 확인
     res.json({ available: !users.find(u => u.loginId === loginId) });
 });
 
@@ -47,8 +44,7 @@ app.post('/api/signup', (req, res) => {
         loginId, password, nickname, email, 
         created_at: new Date().toISOString() 
     };
-    users.push(newUser); // 파일 저장 대신 배열에 push
-    console.log("회원가입 성공:", newUser); // 로그 확인용
+    users.push(newUser);
     res.json({ success: true });
 });
 
@@ -80,16 +76,11 @@ app.post('/api/find-pw', (req, res) => {
 app.post('/api/user/change-pw', (req, res) => {
     const { loginId, currentPassword, newPassword } = req.body;
     const index = users.findIndex(u => u.loginId === loginId);
-
-    if (index !== -1) {
-        if (users[index].password === currentPassword) {
-            users[index].password = newPassword;
-            res.json({ success: true });
-        } else {
-            res.json({ success: false, message: '기존 비밀번호가 틀렸습니다.' });
-        }
+    if (index !== -1 && users[index].password === currentPassword) {
+        users[index].password = newPassword;
+        res.json({ success: true });
     } else {
-        res.json({ success: false, message: '존재하지 않는 아이디입니다.' });
+        res.json({ success: false, message: '정보가 올바르지 않습니다.' });
     }
 });
 
