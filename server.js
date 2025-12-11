@@ -1,3 +1,4 @@
+// [수정된 server.js 상단 부분]
 const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
@@ -9,22 +10,31 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// [핵심 해결] 정적 파일(HTML, CSS, JS, 이미지)을 현재 폴더에서 찾아 보여주도록 설정
 app.use(express.static(__dirname));
 
-// [추가] 기본 주소('/') 접속 시 index.html을 강제로 보여주기
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// --- 아래는 기존 데이터 파일 및 API 코드 (그대로 유지) ---
-const DATA_FILE = path.join(__dirname, 'users.json');
-const SAVINGS_FILE = path.join(__dirname, 'savings.json');
-const CHALLENGES_FILE = path.join(__dirname, 'challenges.json');
+// [중요] Vercel용 데이터 경로 설정 (/tmp 폴더 사용)
+// Vercel은 루트 폴더가 읽기 전용이므로, 쓰기가 가능한 /tmp 폴더로 데이터를 복사해서 사용해야 합니다.
+const TMP_DIR = '/tmp';
+const DATA_FILE = path.join(TMP_DIR, 'users.json');
+const SAVINGS_FILE = path.join(TMP_DIR, 'savings.json');
+const CHALLENGES_FILE = path.join(TMP_DIR, 'challenges.json');
 
-if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, JSON.stringify([]));
-if (!fs.existsSync(SAVINGS_FILE)) fs.writeFileSync(SAVINGS_FILE, JSON.stringify([]));
-if (!fs.existsSync(CHALLENGES_FILE)) fs.writeFileSync(CHALLENGES_FILE, JSON.stringify([]));
+// 초기화 함수: /tmp에 파일이 없으면 빈 배열로 생성
+function initDataFile(filePath) {
+    if (!fs.existsSync(filePath)) {
+        fs.writeFileSync(filePath, JSON.stringify([]));
+    }
+}
+
+// 서버 시작 시 파일 초기화
+initDataFile(DATA_FILE);
+initDataFile(SAVINGS_FILE);
+initDataFile(CHALLENGES_FILE);
+
 
 // 1. 아이디 중복 확인
 app.post('/api/check-id', (req, res) => {
