@@ -143,8 +143,31 @@
         .chip { padding: 8px 15px; background-color: #FFE082; border-radius: 20px; font-size: 14px; cursor: pointer; border: 2px solid transparent; }
         .chip.selected { border-color: #FF6B6B; background-color: #FFD54F; font-weight: bold; }
         
-        .money-add-btns { display: flex; gap: 5px; justify-content: center; margin-bottom: 20px; }
-        .add-btn { flex: 1; padding: 8px 0; background-color: #FFE082; border: none; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; }
+        /* [수정됨]: + / - 버튼 그룹 스타일 */
+        .money-add-btns { 
+            display: flex; 
+            gap: 5px; 
+            justify-content: center; 
+            margin-bottom: 15px; /* 공간 확보 */
+            flex-wrap: wrap; /* 버튼이 많아져서 줄 바꿈 허용 */
+        }
+        /* [수정됨]: 마이너스 버튼 별도 스타일 */
+        .add-btn.negative {
+            background-color: #FFCDD2; /* 연한 빨강 */
+            color: #B71C1C; /* 진한 빨강 */
+        }
+
+        .add-btn { 
+            flex: 1; 
+            min-width: 70px; /* 버튼 최소 너비 설정 */
+            padding: 8px 0; 
+            background-color: #FFE082; 
+            border: none; 
+            border-radius: 8px; 
+            font-size: 12px; 
+            font-weight: bold; 
+            cursor: pointer; 
+        }
         .confirm-btn { width: 100%; padding: 15px; background-color: #FFD54F; border: none; border-radius: 30px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         
         /* 저금 내역 리스트 */
@@ -195,6 +218,31 @@
             box-shadow: 0 3px 5px rgba(0,0,0,0.1);
         }
         #more-btn:hover { background-color: #FFCA28; }
+
+        /* [추가됨]: 축하 팝업 스타일 */
+        #celebration-popup {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #FF6B6B;
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            font-size: 20px;
+            font-weight: bold;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+            z-index: 200;
+            text-align: center;
+            animation: fadeInOut 5s forwards;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            10% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            90% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+        }
 
     </style>
 </head>
@@ -251,6 +299,8 @@
         </a>
     </div>
 
+    <div id="celebration-popup">🎉 목표 100% 달성! 축하합니다! 🎉</div>
+
     <div id="goal-modal" class="modal-overlay">
         <div class="modal-content">
             <img src="back.png" class="modal-back-btn" onclick="closeModal('goal-modal')" alt="뒤로가기">
@@ -260,6 +310,11 @@
                 <button class="add-btn" onclick="addAmount('goal-input', 1000)">+1천</button>
                 <button class="add-btn" onclick="addAmount('goal-input', 5000)">+5천</button>
                 <button class="add-btn" onclick="addAmount('goal-input', 10000)">+1만</button>
+            </div>
+            <div class="money-add-btns">
+                <button class="add-btn negative" onclick="addAmount('goal-input', -1000)">-1천</button>
+                <button class="add-btn negative" onclick="addAmount('goal-input', -5000)">-5천</button>
+                <button class="add-btn negative" onclick="addAmount('goal-input', -10000)">-1만</button>
             </div>
             <button class="confirm-btn" onclick="confirmGoal()">설정 완료</button>
         </div>
@@ -290,6 +345,11 @@
                     <button class="add-btn" onclick="addAmount('save-amount-input', 100)">+100</button>
                     <button class="add-btn" onclick="addAmount('save-amount-input', 1000)">+1천</button>
                     <button class="add-btn" onclick="addAmount('save-amount-input', 5000)">+5천</button>
+                </div>
+                <div class="money-add-btns">
+                    <button class="add-btn negative" onclick="addAmount('save-amount-input', -100)">-100</button>
+                    <button class="add-btn negative" onclick="addAmount('save-amount-input', -1000)">-1천</button>
+                    <button class="add-btn negative" onclick="addAmount('save-amount-input', -5000)">-5천</button>
                 </div>
             </div>
             <div class="step-block" style="border:none;">
@@ -322,6 +382,7 @@
         let currentSaved = 0;   
         let goalAmount = 50000;
         let tempSave = { category: '', sub: '', amount: 0, memo: '' };
+        let isGoalAchieved = false; // 목표 달성 상태 추적 변수 추가
 
         const subCategories = {
             'meal': ['배달음식', '학식', '편의점', '마트', '레스토랑', '길거리', '회식'],
@@ -362,9 +423,11 @@
                     .filter(d => {
                         const datePart = d.saved_date.split('T')[0]; 
                         const parts = datePart.split('-');
+                        // DB에서 가져온 데이터의 연도와 월이 현재와 일치하는 것만 필터링
                         return parseInt(parts[0]) === thisYear && parseInt(parts[1]) === thisMonth;
                     })
-                    .reduce((acc, cur) => acc + cur.amount, 0);
+                    // 누적 금액 계산: 데이터 구조상 amount만 합산
+                    .reduce((acc, cur) => acc + cur.amount, 0); 
 
                 updateUI();
             })
@@ -374,24 +437,53 @@
             });
         }
 
+        // [수정됨]: UI 업데이트 및 100% 달성 로직 추가
         function updateUI() {
             document.getElementById('saved-money').innerText = currentSaved.toLocaleString() + " 원";
             document.getElementById('goal-money-display').innerText = "/ " + goalAmount.toLocaleString() + " 원";
             
             let percent = Math.floor((currentSaved / goalAmount) * 100);
-            if(percent > 100) percent = 100;
+            const wasAchieved = isGoalAchieved; // 이전 상태 저장
+
+            if(percent >= 100) {
+                percent = 100;
+                isGoalAchieved = true;
+            } else {
+                isGoalAchieved = false;
+            }
             if(percent < 0) percent = 0; 
 
             document.getElementById('percent-text').innerText = percent + "%";
 
             const pigImg = document.querySelector('.piggy-img');
-            const step = Math.floor(percent / 5);
-
-            if(step === 0) {
-                pigImg.src = "piggy.png";
+            
+            // 돼지 이미지 로직
+            if (isGoalAchieved) {
+                pigImg.src = "piggy100.png"; // 100% 달성 시 이미지 변경
+                // 100% 달성 시 축하 팝업 출력 (이전 상태가 false일 때만)
+                if (!wasAchieved) {
+                    showCelebrationPopup();
+                }
             } else {
-                pigImg.src = `pig_step${step}.png`;
+                const step = Math.floor(percent / 5);
+                if(step === 0) {
+                    pigImg.src = "piggy.png";
+                } else {
+                    // pig_step1.png ~ pig_step20.png (100% / 5 = 20 steps)
+                    pigImg.src = `pig_step${step}.png`; 
+                }
             }
+        }
+
+        // [추가됨]: 100% 달성 팝업 함수
+        function showCelebrationPopup() {
+            const popup = document.getElementById('celebration-popup');
+            popup.style.display = 'block';
+
+            // 5초 후 사라지도록 설정 (CSS 애니메이션과 동일)
+            setTimeout(() => {
+                popup.style.display = 'none';
+            }, 5000);
         }
 
         function setTodayDate() {
@@ -407,7 +499,16 @@
             document.getElementById('goal-input').value = goalAmount;
             document.getElementById('goal-modal').classList.add('open'); 
         }
-        function addAmount(id, amt) { const el = document.getElementById(id); el.value = (parseInt(el.value)||0) + amt; }
+        
+        // [수정됨]: addAmount 함수 (음수 처리 포함)
+        function addAmount(id, amt) { 
+            const el = document.getElementById(id); 
+            let currentVal = parseInt(el.value)||0;
+            currentVal += amt;
+            // 금액이 음수가 되지 않도록 방지
+            if (currentVal < 0) currentVal = 0; 
+            el.value = currentVal; 
+        }
         
         function confirmGoal() { 
             const inputVal = document.getElementById('goal-input').value;
@@ -449,7 +550,10 @@
 
         function completeSave() {
             const amt = parseInt(document.getElementById('save-amount-input').value);
-            if(!tempSave.category || !tempSave.sub || !amt) { alert('내용을 모두 입력해주세요'); return; }
+            if(!tempSave.category || !tempSave.sub || !amt || amt <= 0) { 
+                alert('카테고리, 내용, 그리고 0보다 큰 금액을 입력해주세요.'); 
+                return; 
+            }
             
             const now = new Date();
             const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
@@ -541,7 +645,8 @@
 
                 li.className = `history-item ${bgClass}`; 
                 
-                const balanceText = item.balance ? item.balance.toLocaleString() : "누적 정보 없음";
+                // [수정됨]: balance가 문자열 'null'로 오거나 값이 없을 경우 처리 
+                const balanceText = item.balance && item.balance !== 'null' ? item.balance.toLocaleString() : "누적 정보 없음";
                 const dateShort = item.saved_date.split('T')[0].substring(5); 
 
                 // [1] 수정됨: 메모가 있으면 표시
@@ -554,7 +659,7 @@
                         ${memoHtml}
                     </div>
                     <div class="h-right">
-                        <span class="h-amount">+${item.amount.toLocaleString()}원</span>
+                        <span class="h-amount">${item.amount >= 0 ? '+' : ''}${item.amount.toLocaleString()}원</span>
                         <span class="h-total">${balanceText}원</span>
                     </div>`;
                 list.appendChild(li);
