@@ -1,7 +1,12 @@
 const express = require('express');
 const cors = require('cors');
-const fs = require('fs');
 const path = require('path');
+
+// [중요] fs(파일시스템) 제거! 
+// 대신 변수에 저장합니다. (주의: 서버가 재시작되면 데이터가 날아갑니다. 테스트용으로만 쓰세요!)
+let users = [];       // 유저 정보 저장소
+let savings = [];     // 저금 내역 저장소
+let challenges = [];  // 챌린지 내역 저장소
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -9,41 +14,32 @@ const port = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
-// [핵심 해결] 정적 파일(HTML, CSS, JS, 이미지)을 현재 폴더에서 찾아 보여주도록 설정
+// 정적 파일 연결
 app.use(express.static(__dirname));
 
-// [추가] 기본 주소('/') 접속 시 index.html을 강제로 보여주기
+// 메인 화면
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// --- 아래는 기존 데이터 파일 및 API 코드 (그대로 유지) ---
-const DATA_FILE = path.join(__dirname, 'users.json');
-const SAVINGS_FILE = path.join(__dirname, 'savings.json');
-const CHALLENGES_FILE = path.join(__dirname, 'challenges.json');
-
-if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, JSON.stringify([]));
-if (!fs.existsSync(SAVINGS_FILE)) fs.writeFileSync(SAVINGS_FILE, JSON.stringify([]));
-if (!fs.existsSync(CHALLENGES_FILE)) fs.writeFileSync(CHALLENGES_FILE, JSON.stringify([]));
+// --- API 코드 (파일 대신 위에서 만든 변수 배열을 사용합니다) ---
 
 // 1. 아이디 중복 확인
 app.post('/api/check-id', (req, res) => {
     const { loginId } = req.body;
-    const users = JSON.parse(fs.readFileSync(DATA_FILE));
+    // 파일 읽기(fs) 대신 users 배열 확인
     res.json({ available: !users.find(u => u.loginId === loginId) });
 });
 
 // 2. 이메일 중복 확인
 app.post('/api/check-email', (req, res) => {
     const { email } = req.body;
-    const users = JSON.parse(fs.readFileSync(DATA_FILE));
     res.json({ available: !users.find(u => u.email === email) });
 });
 
 // 3. 회원가입
 app.post('/api/signup', (req, res) => {
     const { loginId, password, nickname, email } = req.body;
-    const users = JSON.parse(fs.readFileSync(DATA_FILE));
     if (users.find(u => u.loginId === loginId)) return res.json({ success: false, message: '이미 존재하는 아이디입니다.' });
     
     const newUser = { 
@@ -51,24 +47,22 @@ app.post('/api/signup', (req, res) => {
         loginId, password, nickname, email, 
         created_at: new Date().toISOString() 
     };
-    users.push(newUser);
-    fs.writeFileSync(DATA_FILE, JSON.stringify(users, null, 2));
+    users.push(newUser); // 파일 저장 대신 배열에 push
+    console.log("회원가입 성공:", newUser); // 로그 확인용
     res.json({ success: true });
 });
 
 // 4. 로그인
 app.post('/api/login', (req, res) => {
     const { loginId, password } = req.body;
-    const users = JSON.parse(fs.readFileSync(DATA_FILE));
     const user = users.find(u => u.loginId === loginId && u.password === password);
     if (user) res.json({ success: true, user: user });
-    else res.json({ success: false, message: '실패' });
+    else res.json({ success: false, message: '아이디 또는 비밀번호가 틀립니다.' });
 });
 
 // 5. 아이디 찾기
 app.post('/api/find-id', (req, res) => {
     const { email } = req.body;
-    const users = JSON.parse(fs.readFileSync(DATA_FILE));
     const user = users.find(u => u.email === email);
     if (user) res.json({ success: true, loginId: user.loginId });
     else res.json({ success: false });
@@ -77,22 +71,19 @@ app.post('/api/find-id', (req, res) => {
 // 6. 비밀번호 찾기
 app.post('/api/find-pw', (req, res) => {
     const { loginId, email } = req.body;
-    const users = JSON.parse(fs.readFileSync(DATA_FILE));
     const user = users.find(u => u.loginId === loginId && u.email === email);
     if (user) res.json({ success: true, password: user.password });
     else res.json({ success: false });
 });
 
-// 7. 비밀번호 변경 (로그인 전용)
+// 7. 비밀번호 변경
 app.post('/api/user/change-pw', (req, res) => {
     const { loginId, currentPassword, newPassword } = req.body;
-    const users = JSON.parse(fs.readFileSync(DATA_FILE));
     const index = users.findIndex(u => u.loginId === loginId);
 
     if (index !== -1) {
         if (users[index].password === currentPassword) {
             users[index].password = newPassword;
-            fs.writeFileSync(DATA_FILE, JSON.stringify(users, null, 2));
             res.json({ success: true });
         } else {
             res.json({ success: false, message: '기존 비밀번호가 틀렸습니다.' });
@@ -102,34 +93,19 @@ app.post('/api/user/change-pw', (req, res) => {
     }
 });
 
-// 8. 비밀번호 변경 (마이페이지용)
-app.post('/api/user/password', (req, res) => {
-    const { id, currentPassword, newPassword } = req.body;
-    const users = JSON.parse(fs.readFileSync(DATA_FILE));
-    const index = users.findIndex(u => u.id === id);
-    if (index !== -1 && users[index].password === currentPassword) {
-        users[index].password = newPassword;
-        fs.writeFileSync(DATA_FILE, JSON.stringify(users, null, 2));
-        res.json({ success: true });
-    } else res.json({ success: false, message: '오류' });
-});
-
 // 9. 유저 정보 조회
 app.get('/api/user/:id', (req, res) => {
     const userId = parseInt(req.params.id);
-    const users = JSON.parse(fs.readFileSync(DATA_FILE));
     const user = users.find(u => u.id === userId);
     if (user) res.json(user); else res.status(404).json({});
 });
 
-// 10. 유저 정보 수정 (닉네임)
+// 10. 유저 정보 수정
 app.post('/api/user/update', (req, res) => {
     const { id, nickname } = req.body;
-    const users = JSON.parse(fs.readFileSync(DATA_FILE));
     const index = users.findIndex(u => u.id === id);
     if (index !== -1) {
         users[index].nickname = nickname;
-        fs.writeFileSync(DATA_FILE, JSON.stringify(users, null, 2));
         res.json({ success: true });
     } else res.json({ success: false });
 });
@@ -137,46 +113,38 @@ app.post('/api/user/update', (req, res) => {
 // 11. 저금 내역 조회
 app.get('/api/savings/:userId', (req, res) => {
     const userId = parseInt(req.params.userId);
-    const allSavings = JSON.parse(fs.readFileSync(SAVINGS_FILE));
-    res.json(allSavings.filter(s => s.userId === userId));
+    res.json(savings.filter(s => s.userId === userId));
 });
 
 // 12. 저금하기
 app.post('/api/save', (req, res) => {
     const { userId, category, subCategory, amount, memo, balance } = req.body;
-    const allSavings = JSON.parse(fs.readFileSync(SAVINGS_FILE));
     const newSave = { id: Date.now(), userId, category, sub_category: subCategory, amount, balance, memo, saved_date: new Date().toISOString() };
-    allSavings.push(newSave);
-    fs.writeFileSync(SAVINGS_FILE, JSON.stringify(allSavings, null, 2));
+    savings.push(newSave);
     res.json({ success: true });
 });
 
 // 13. 챌린지 생성
 app.post('/api/challenge', (req, res) => {
     const { userId, title, category, subCategory, targetAmount, startDate, endDate } = req.body;
-    const challenges = JSON.parse(fs.readFileSync(CHALLENGES_FILE));
     const newChallenge = { id: Date.now(), user_id: userId, title, category, sub_category: subCategory, target_amount: targetAmount, saved_amount: 0, start_date: startDate, end_date: endDate, status: 'ongoing' };
     challenges.push(newChallenge);
-    fs.writeFileSync(CHALLENGES_FILE, JSON.stringify(challenges, null, 2));
     res.json({ success: true });
 });
 
 // 14. 챌린지 목록 조회
 app.get('/api/challenges/:userId', (req, res) => {
     const userId = parseInt(req.params.userId);
-    const challenges = JSON.parse(fs.readFileSync(CHALLENGES_FILE));
     res.json(challenges.filter(c => c.user_id === userId).sort((a, b) => b.id - a.id));
 });
 
 // 15. 챌린지 상태 업데이트
 app.post('/api/challenge/update', (req, res) => {
     const { id, savedAmount, status } = req.body;
-    const challenges = JSON.parse(fs.readFileSync(CHALLENGES_FILE));
     const index = challenges.findIndex(c => c.id === id);
     if (index !== -1) {
         challenges[index].saved_amount = savedAmount;
         if (status) challenges[index].status = status;
-        fs.writeFileSync(CHALLENGES_FILE, JSON.stringify(challenges, null, 2));
         res.json({ success: true });
     } else res.json({ success: false });
 });
