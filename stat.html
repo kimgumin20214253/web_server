@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>저축 앱 - 통계</title>
+    <style>
+        /* [기본 스타일 유지] */
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Pretendard', sans-serif; background-color: #FAF4EC; color: #333; overflow: hidden; display: flex; flex-direction: column; }
+
+        /* [통계 헤더] */
+        .stat-header { padding: 40px 20px 20px; display: flex; justify-content: center; align-items: center; gap: 20px; }
+        .month-nav-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #333; }
+        .stat-month-title { font-size: 24px; font-weight: bold; }
+        .stat-total-amount { text-align: center; font-size: 36px; font-weight: 800; margin-bottom: 20px; color: #333; }
+
+        /* [차트 섹션] */
+        /* 1. 배경색 변경 (흰색 -> 연한 아이보리/노란색) */
+        .chart-section { 
+            background-color: #FEF9E7; /* 수정됨 */
+            margin: 10px 20px; 
+            padding: 20px; 
+            border-radius: 20px; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); 
+            display: flex; flex-direction: column; align-items: center; position: relative; 
+        }
+        .chart-title { width: 100%; font-size: 16px; font-weight: bold; margin-bottom: 15px; text-align: left; }
+
+        /* [원 그래프 컨테이너] */
+        .pie-container { 
+            position: relative; 
+            width: 100%; /* 너비를 꽉 채움 */
+            max-width: 320px; /* 최대 너비 제한 */
+            height: 300px; /* 높이 확보 */
+            display: flex; justify-content: center; align-items: center; 
+        }
+        
+        #pie-chart-svg { width: 220px; height: 220px; cursor: pointer; filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.1)); }
+
+        /* [상세 정보 박스 스타일] */
+        .detail-box { 
+            position: absolute; 
+            width: 140px; /* 너비 적절히 조정 */
+            padding: 12px; 
+            border-radius: 15px; 
+            font-size: 12px; 
+            border: 1px solid rgba(0,0,0,0.1); 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15); 
+            display: none; /* 기본 숨김 */
+            z-index: 20; 
+            pointer-events: none; 
+            color: #333;
+            text-align: left;
+        }
+        
+        .box-header {
+            font-size: 13px; font-weight: bold; margin-bottom: 5px;
+            padding-bottom: 5px; border-bottom: 1px dashed rgba(0,0,0,0.2); text-align: center;
+        }
+
+        .box-list { list-style-type: disc; padding-left: 15px; margin: 0; }
+        .box-list li { margin-bottom: 3px; font-weight: 500; }
+
+        .detail-box.show { display: block; animation: popIn 0.3s ease; }
+        @keyframes popIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+        
+        /* 2. 상세 박스 위치 조정 (그래프 밖으로 배치) */
+        .pos-top-left { top: 0; left: -10px; }
+        .pos-top-right { top: 0; right: -10px; }
+        .pos-bottom-left { bottom: 0; left: -10px; }
+        .pos-bottom-right { bottom: 0; right: -10px; }
+
+        /* [막대 그래프] */
+        .bar-chart-container {
+            display: flex; align-items: flex-end; 
+            height: 220px; width: 100%; padding-top: 20px;
+            overflow-x: auto; gap: 12px; padding-bottom: 5px;
+        }
+        
+        .bar-wrapper {
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+            min-width: 25px; height: 100%; cursor: pointer; position: relative;
+        }
+
+        .bar-value { 
+            position: absolute; top: 0; font-size: 11px; font-weight: 800; white-space: nowrap; 
+            background: transparent; margin-bottom: 3px; 
+            opacity: 0; transition: all 0.3s; pointer-events: none;
+        }
+        .bar-chart-container.show-all .bar-value,
+        .bar-wrapper.active .bar-value { opacity: 1; top: -20px; }
+
+        .text-red { color: #FF6B6B; }
+        .text-blue { color: #4D96FF; }
+        .text-gray { color: #AAA; }
+        
+        .bar { width: 12px; border-radius: 5px 5px 0 0; transition: height 0.5s ease; }
+        .bar-day { font-size: 10px; color: #888; margin-top: 5px; height: 15px; }
+        
+        .bg-red { background-color: #FF6B6B; }
+        .bg-blue { background-color: #4D96FF; }
+        .bg-gray { background-color: #D9D9D9; }
+
+        /* [네비게이션 바] */
+        .navbar { height: 110px; background-color: transparent; border-top: 4px solid #D9D9D9; display: flex; justify-content: space-evenly; align-items: center; padding-bottom: 10px; z-index: 50; margin-top: auto; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; border: none; background: none; gap: 6px; text-decoration: none; }
+        .nav-icon-box { width: 58px; height: 58px; background-color: #FFD54F; border-radius: 14px; display: flex; justify-content: center; align-items: center; box-shadow: 0 3px 6px rgba(0,0,0,0.1); transition: all 0.3s ease; }
+        .nav-icon-img { width: 32px; height: 32px; object-fit: contain; }
+        .nav-text { font-size: 12px; color: #888; font-weight: 500; }
+        .nav-item.active .nav-icon-box { background-color: #FF6B6B; transform: translateY(-5px); box-shadow: 0 5px 10px rgba(255, 107, 107, 0.3); }
+        .nav-item.active .nav-icon-img { filter: brightness(0) invert(1); }
+        .nav-item.active .nav-text { color: #333; font-weight: bold; }
+
+    </style>
+</head>
+<body>
+
+    <div style="flex:1; overflow-y:auto;">
+        <div class="stat-header">
+            <button class="month-nav-btn" onclick="changeMonth(-1)">◀</button>
+            <span class="stat-month-title" id="stat-month-title"></span>
+            <button class="month-nav-btn" onclick="changeMonth(1)">▶</button>
+        </div>
+        
+        <div class="stat-total-amount" id="stat-total-amount">0원</div>
+
+        <div class="chart-section">
+            <div class="chart-title">카테고리별 저금 비율 (클릭하여 상세 보기)</div>
+            <div class="pie-container" onclick="toggleDetails()">
+                <div id="box-shopping" class="detail-box pos-top-left"></div>
+                <div id="box-meal" class="detail-box pos-top-right"></div>
+                <div id="box-leisure" class="detail-box pos-bottom-left"></div>
+                <div id="box-transport" class="detail-box pos-bottom-right"></div>
+                
+                <svg id="pie-chart-svg" viewBox="-1 -1 2 2" style="transform: rotate(-90deg);"></svg>
+            </div>
+            <div style="display:flex; gap:15px; margin-top:10px; font-size:12px;">
+                <div style="display:flex; align-items:center; gap:5px;"><div style="width:10px; height:10px; background:#FFB3BA;"></div>식사</div>
+                <div style="display:flex; align-items:center; gap:5px;"><div style="width:10px; height:10px; background:#BAFFC9;"></div>교통</div>
+                <div style="display:flex; align-items:center; gap:5px;"><div style="width:10px; height:10px; background:#FFFFBA;"></div>쇼핑</div>
+                <div style="display:flex; align-items:center; gap:5px;"><div style="width:10px; height:10px; background:#BAE1FF;"></div>여가</div>
+            </div>
+        </div>
+
+        <div class="chart-section">
+            <div class="chart-title">일일 저금 그래프 (막대를 눌러 금액 확인)</div>
+            <div class="bar-chart-container" id="bar-chart-container" onclick="toggleAllValues()"></div>
+        </div>
+    </div>
+
+    <div class="navbar">
+        <a href="home.html" class="nav-item">
+            <div class="nav-icon-box"><img src="icon_home.png" class="nav-icon-img"></div>
+            <span class="nav-text">홈</span>
+        </a>
+        <div class="nav-item active">
+            <div class="nav-icon-box"><img src="icon_stat.png" class="nav-icon-img"></div>
+            <span class="nav-text">통계</span>
+        </div>
+        <a href="challenge.html" class="nav-item">
+            <div class="nav-icon-box"><img src="icon_challenge.png" class="nav-icon-img"></div>
+            <span class="nav-text">챌린지</span>
+        </a>
+        <a href="user.html" class="nav-item">
+            <div class="nav-icon-box"><img src="icon_user.png" class="nav-icon-img"></div>
+            <span class="nav-text">나의 정보</span>
+        </a>
+    </div>
+
+    <script>
+        let currentDate = new Date(); 
+        let historyData = [];
+        let currentUser = null;
+
+        // 원그래프 색상
+        const catColors = { 'meal': '#FFB3BA', 'transport': '#BAFFC9', 'shopping': '#FFFFBA', 'leisure': '#BAE1FF' };
+        
+        // 2. 카테고리별 상세박스 배경색 (진한 버전에서 살짝 연하게 조정하거나 그대로 사용)
+        const boxBgColors = { 
+            'meal': '#FFCDD2',      /* 빨강 */
+            'transport': '#C8E6C9', /* 초록 */
+            'shopping': '#FFF9C4',  /* 노랑 */
+            'leisure': '#BBDEFB'    /* 파랑 */
+        };
+
+        const catIcons = { 'meal': 'cat_meal.png', 'transport': 'cat_transport.png', 'shopping': 'cat_shopping.png', 'leisure': 'cat_leisure.png' };
+        const catNames = { 'meal': '식사', 'transport': '교통', 'shopping': '쇼핑', 'leisure': '여가' };
+
+        window.onload = function() {
+            const savedUser = localStorage.getItem('loginUser');
+            if(!savedUser) { alert("로그인이 필요합니다."); location.href='login.html'; return; }
+            currentUser = JSON.parse(savedUser);
+            loadServerData();
+        };
+
+        function loadServerData() {
+            fetch(`http://localhost:3000/api/savings/${currentUser.id}`)
+            .then(res => res.json())
+            .then(data => {
+                historyData = data;
+                renderStats();
+            })
+            .catch(err => {
+                console.error("통계 데이터 로드 실패:", err);
+                alert("서버 연결 실패! 데이터를 불러올 수 없습니다.");
+            });
+        }
+
+        function changeMonth(delta) {
+            currentDate.setMonth(currentDate.getMonth() + delta);
+            renderStats();
+            document.getElementById('bar-chart-container').classList.remove('show-all');
+        }
+
+        function renderStats() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+
+            document.getElementById('stat-month-title').innerText = `${year}년 ${month+1}월`;
+
+            const monthlyData = historyData.filter(d => {
+                const datePart = d.saved_date.split('T')[0];
+                const parts = datePart.split('-');
+                return parseInt(parts[0]) === year && parseInt(parts[1]) === (month + 1);
+            });
+
+            const total = monthlyData.reduce((acc, cur) => acc + cur.amount, 0);
+            document.getElementById('stat-total-amount').innerText = total.toLocaleString() + "원";
+
+            // 상세 박스들 초기화 (숨김)
+            document.querySelectorAll('.detail-box').forEach(el => {
+                el.classList.remove('show');
+                el.dataset.empty = "true"; // 초기엔 데이터 없음 상태
+            });
+
+            drawPieChart(monthlyData, total);
+            drawBarChart(monthlyData, year, month);
+        }
+
+        function drawPieChart(data, total) {
+            const svg = document.getElementById('pie-chart-svg');
+            svg.innerHTML = "";
+
+            if(total === 0) {
+                svg.innerHTML = '<circle cx="0" cy="0" r="1" fill="#EEE" />';
+                return;
+            }
+
+            const cats = ['meal', 'transport', 'shopping', 'leisure'];
+            let cumulativePercent = 0;
+
+            cats.forEach(cat => {
+                const items = data.filter(d => d.category === cat);
+                const catSum = items.reduce((acc, cur) => acc + cur.amount, 0);
+                
+                if(catSum > 0) {
+                    const percent = catSum / total;
+                    const percentDisplay = Math.round(percent * 100);
+                    
+                    const startX = Math.cos(2 * Math.PI * cumulativePercent);
+                    const startY = Math.sin(2 * Math.PI * cumulativePercent);
+                    const endX = Math.cos(2 * Math.PI * (cumulativePercent + percent));
+                    const endY = Math.sin(2 * Math.PI * (cumulativePercent + percent));
+                    const largeArcFlag = percent > 0.5 ? 1 : 0;
+                    
+                    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                    path.setAttribute("d", `M 0 0 L ${startX} ${startY} A 1 1 0 ${largeArcFlag} 1 ${endX} ${endY} Z`);
+                    path.setAttribute("fill", catColors[cat]);
+                    svg.appendChild(path);
+
+                    if(percent >= 0.05) {
+                        const midPercent = cumulativePercent + percent / 2;
+                        const labelR = 0.65;
+                        const labelX = Math.cos(2 * Math.PI * midPercent) * labelR;
+                        const labelY = Math.sin(2 * Math.PI * midPercent) * labelR;
+
+                        const iconSize = 0.25;
+                        const image = document.createElementNS("http://www.w3.org/2000/svg", "image");
+                        image.setAttribute("href", catIcons[cat]);
+                        image.setAttribute("x", labelX - iconSize/2);
+                        image.setAttribute("y", labelY - iconSize/2);
+                        image.setAttribute("width", iconSize);
+                        image.setAttribute("height", iconSize);
+                        image.setAttribute("transform", `rotate(90, ${labelX}, ${labelY})`); 
+                        svg.appendChild(image);
+
+                        const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+                        text.setAttribute("x", labelX);
+                        text.setAttribute("y", labelY + iconSize/2 + 0.12);
+                        text.setAttribute("text-anchor", "middle");
+                        text.setAttribute("font-size", "0.13");
+                        text.setAttribute("font-weight", "bold");
+                        text.setAttribute("fill", "#333");
+                        text.textContent = `${percentDisplay}%`;
+                        text.setAttribute("transform", `rotate(90, ${labelX}, ${labelY})`);
+                        svg.appendChild(text);
+                    }
+                    // 상세 박스 채우기
+                    fillDetailBox(cat, items, catSum);
+                    cumulativePercent += percent;
+                }
+            });
+        }
+
+        // [수정됨] 상세 박스 채우기 (배경색 적용 및 0원 처리)
+        function fillDetailBox(cat, items, sum) {
+            const box = document.getElementById(`box-${cat}`);
+            
+            // 데이터가 없으면 함수 종료 (dataset.empty는 이미 true로 초기화되어 있음)
+            if (sum === 0) return;
+
+            const catName = catNames[cat];
+            
+            // 데이터 있음 표시
+            box.dataset.empty = "false";
+            // 2. 카테고리별 배경색 적용
+            box.style.backgroundColor = boxBgColors[cat];
+
+            let html = `<div class="box-header">[${catName}] 총 ${sum.toLocaleString()}원 저금</div>`;
+            html += `<ul class="box-list">`;
+            items.slice(0, 4).forEach(item => {
+                html += `<li>${item.sub_category} : ${item.amount.toLocaleString()}원</li>`;
+            });
+            html += `</ul>`;
+
+            box.innerHTML = html;
+        }
+
+        // [수정됨] 클릭 시 토글 (빈 박스는 무시)
+        function toggleDetails() {
+            document.querySelectorAll('.detail-box').forEach(el => {
+                // 데이터가 있는(empty가 false인) 박스만 토글
+                if(el.dataset.empty === "false") {
+                    el.classList.toggle('show');
+                }
+            });
+        }
+
+        // === 막대 그래프 ===
+        function drawBarChart(data, year, month) {
+            const container = document.getElementById('bar-chart-container');
+            container.innerHTML = "";
+            container.classList.remove('show-all'); 
+
+            const lastDay = new Date(year, month + 1, 0).getDate();
+            const dailySums = new Array(lastDay + 1).fill(0);
+
+            data.forEach(d => {
+                const datePart = d.saved_date.split('T')[0];
+                const day = parseInt(datePart.split('-')[2]);
+                dailySums[day] += d.amount;
+            });
+
+            let maxVal = 0;
+            let minVal = Infinity;
+            dailySums.forEach(v => {
+                if(v > maxVal) maxVal = v;
+                if(v > 0 && v < minVal) minVal = v;
+            });
+            if(minVal === Infinity) minVal = 0;
+
+            for(let i = 1; i <= lastDay; i++) {
+                const val = dailySums[i];
+                const wrapper = document.createElement('div');
+                wrapper.className = 'bar-wrapper';
+
+                if(val === 0) {
+                    wrapper.innerHTML = `<div class="bar" style="height:0px;"></div><div class="bar-day">${i}</div>`;
+                } else {
+                    const heightPct = (val / maxVal) * 80; 
+                    const finalHeight = Math.max(heightPct, 5);
+                    let barClass = 'bg-gray'; let textClass = 'text-gray';
+
+                    if(val === maxVal) { barClass = 'bg-red'; textClass = 'text-red'; } 
+                    else if(val === minVal) { barClass = 'bg-blue'; textClass = 'text-blue'; }
+
+                    wrapper.innerHTML = `
+                        <div class="bar-value ${textClass}" style="bottom: ${finalHeight + 10}%;">${val.toLocaleString()}</div>
+                        <div class="bar ${barClass}" style="height:${finalHeight}%;"></div>
+                        <div class="bar-day">${i}</div>
+                    `;
+                }
+                wrapper.onclick = function(e) {
+                    e.stopPropagation();
+                    const isActive = this.classList.contains('active');
+                    document.querySelectorAll('.bar-wrapper').forEach(el => el.classList.remove('active'));
+                    if(!isActive) this.classList.add('active');
+                };
+                container.appendChild(wrapper);
+            }
+        }
+        function toggleAllValues() {
+            const container = document.getElementById('bar-chart-container');
+            container.classList.toggle('show-all');
+            document.querySelectorAll('.bar-wrapper').forEach(el => el.classList.remove('active'));
+        }
+    </script>
+</body>
+</html>

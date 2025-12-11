@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>저축 앱 - 홈</title>
+    <style>
+        /* [기본 스타일] */
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Pretendard', sans-serif; background-color: #FAF4EC; color: #333; overflow: hidden; display: flex; flex-direction: column; }
+
+        /* [헤더 & 금액] */
+        .header { padding: 40px 20px 10px; text-align: center; }
+        .date-text { font-size: 28px; font-weight: 900; color: #333; }
+        .d-day { color: #FF6B6B; margin-left: 8px; font-size: 24px; font-weight: 900; }
+        
+        /* 구분선 */
+        .divider-line {
+            width: 320px;
+            height: 2px;
+            background-color: #D9D9D9;
+            margin: 15px auto 0;
+            border-radius: 2px;
+        }
+
+        /* 금액 섹션 */
+        .money-section { text-align: center; margin-bottom: 10px; min-height: 80px; display: flex; flex-direction: column; justify-content: center; }
+        .current-money { font-size: 32px; font-weight: 800; margin-bottom: 5px; }
+        .goal-container { display: flex; justify-content: center; align-items: center; gap: 8px; color: #666; font-size: 16px; }
+        
+        .edit-btn { background: none; border: none; cursor: pointer; padding: 0; display: flex; align-items: center; }
+        .edit-icon-img { width: 20px; height: 20px; object-fit: contain; opacity: 0.6; transition: opacity 0.2s; }
+        .edit-btn:hover .edit-icon-img { opacity: 1; }
+
+        /* 랜덤 메시지 이미지 */
+        #random-msg-img {
+            position: absolute;
+            top: -50px;
+            left: -20px;
+            width: 110px;
+            height: auto;
+            object-fit: contain;
+            display: none;
+            z-index: 50;
+            animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.1));
+        }
+        @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* [돼지 저금통] */
+        .piggy-wrapper { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; width: 100%; overflow: hidden; }
+        .piggy-container { position: relative; width: 300px; height: 250px; }
+        .piggy-img { width: 100%; height: 100%; object-fit: contain; position: relative; z-index: 10; transition: transform 0.3s ease; }
+        
+        /* 퍼센트 텍스트 */
+        .percent-bubble { 
+            position: absolute; top: -10px; right: 0px; 
+            width: 70px; height: 60px; 
+            background-image: url('percent.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            background-color: transparent; 
+            box-shadow: none; 
+            display: flex; justify-content: center; align-items: center;
+            color: #333; font-weight: 900; font-size: 16px; 
+            z-index: 20; padding-bottom: 5px; 
+            padding-left: 5px; 
+        }
+
+        /* [버튼] */
+        .action-buttons { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; z-index: 30; }
+        .main-btn { background-color: #FFD54F; border: none; padding: 12px 30px; border-radius: 30px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 4px rgba(0,0,0,0.1); cursor: pointer; }
+        .main-btn.secondary { background-color: #FFE082; }
+
+        /* [네비게이션 바] */
+        .navbar { height: 110px; background-color: transparent; border-top: 4px solid #D9D9D9; display: flex; justify-content: space-evenly; align-items: center; padding-bottom: 10px; z-index: 50; }
+        a.nav-item { text-decoration: none; color: inherit; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; border: none; background: none; gap: 6px; }
+        .nav-icon-box { width: 58px; height: 58px; background-color: #FFD54F; border-radius: 14px; display: flex; justify-content: center; align-items: center; box-shadow: 0 3px 6px rgba(0,0,0,0.1); transition: all 0.3s ease; }
+        .nav-icon-img { width: 32px; height: 32px; object-fit: contain; }
+        .nav-text { font-size: 12px; color: #888; font-weight: 500; }
+        .nav-item.active .nav-icon-box { background-color: #FF6B6B; transform: translateY(-5px); box-shadow: 0 5px 10px rgba(255, 107, 107, 0.3); }
+        .nav-item.active .nav-icon-img { filter: brightness(0) invert(1); }
+        .nav-item.active .nav-text { color: #333; font-weight: bold; }
+
+        /* [모달 공통] */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center; }
+        .modal-overlay.open { display: flex; }
+        .modal-content { background-color: #FFF; width: 90%; max-width: 360px; border-radius: 20px; padding: 25px; box-sizing: border-box; position: relative; max-height: 85%; overflow-y: auto; }
+        .modal-title { font-size: 20px; font-weight: bold; text-align: center; margin-bottom: 20px; }
+        
+        /* [3] 수정됨: 모달 닫기 버튼(이미지) 스타일 */
+        .modal-back-btn { 
+            position: absolute; top: 20px; left: 20px; 
+            width: 24px; height: 24px; cursor: pointer; 
+            transition: transform 0.2s;
+        }
+        .modal-back-btn:hover { transform: scale(1.1); }
+
+        /* 목표 금액 창 스타일 */
+        #goal-modal .modal-content {
+            padding: 40px 25px; 
+            min-height: 400px; 
+            display: flex; flex-direction: column; justify-content: center;
+        }
+        .input-underline {
+            width: 100%; padding: 10px 5px;
+            background-color: transparent;
+            border: none;
+            border-bottom: 3px solid #333; 
+            font-size: 24px; text-align: center; font-weight: bold;
+            margin-bottom: 30px; outline: none;
+        }
+
+        .input-box { width: 100%; padding: 15px; background-color: #EFEBE6; border: none; border-radius: 10px; font-size: 20px; text-align: center; font-weight: bold; box-sizing: border-box; margin-bottom: 10px; }
+        
+        .step-block { margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px dashed #DDD; }
+        .step-block:last-child { border-bottom: none; }
+        .step-label { font-size: 16px; font-weight: bold; margin-bottom: 15px; color: #555; }
+        
+        /* 저금하기 1단계 */
+        .category-grid { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 10px; 
+        }
+        .cat-item { 
+            background-color: transparent; 
+            border: none; 
+            padding: 0; 
+            cursor: pointer; 
+            display: flex; flex-direction: column; align-items: center;
+        }
+        .cat-item span { display: none; } 
+        .cat-img { width: 60px; height: 60px; object-fit: contain; transition: transform 0.2s; }
+        .cat-item:hover .cat-img { transform: scale(1.1); }
+        .cat-item.selected .cat-img { 
+            transform: scale(1.15); 
+            filter: drop-shadow(0 4px 6px rgba(255, 213, 79, 0.6)); 
+        }
+        
+        .chip-container { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+        .chip { padding: 8px 15px; background-color: #FFE082; border-radius: 20px; font-size: 14px; cursor: pointer; border: 2px solid transparent; }
+        .chip.selected { border-color: #FF6B6B; background-color: #FFD54F; font-weight: bold; }
+        
+        .money-add-btns { display: flex; gap: 5px; justify-content: center; margin-bottom: 20px; }
+        .add-btn { flex: 1; padding: 8px 0; background-color: #FFE082; border: none; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; }
+        .confirm-btn { width: 100%; padding: 15px; background-color: #FFD54F; border: none; border-radius: 30px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        
+        /* 저금 내역 리스트 */
+        .history-list { list-style: none; padding: 0; margin: 0; }
+        .history-item { padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .bg-meal { background-color: #FFCDD2; }
+        .bg-transport { background-color: #C8E6C9; }
+        .bg-shopping { background-color: #FFF9C4; }
+        .bg-leisure { background-color: #BBDEFB; }
+        .bg-default { background-color: #F9F9F9; } 
+
+        .h-left { text-align: left; }
+        .h-date { font-size: 12px; color: #555; margin-bottom: 2px; }
+        .h-title { font-size: 16px; font-weight: bold; }
+        
+        /* [1] 추가됨: 메모 텍스트 스타일 */
+        .h-memo { font-size: 12px; color: #777; margin-top: 4px; font-weight: normal; }
+
+        .h-right { text-align: right; display: flex; flex-direction: column; align-items: flex-end; }
+        .h-amount { font-size: 16px; font-weight: bold; color: #333; display: block; }
+        .h-total { font-size: 11px; color: #777; margin-top: 3px; font-weight: 500; }
+        
+        /* 내역 필터 버튼 */
+        .filter-bar { display: flex; gap: 15px; justify-content: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #EEE; }
+        .filter-icon-btn { 
+            width: 50px; height: 50px; 
+            border-radius: 0; border: none; 
+            background-color: transparent; 
+            cursor: pointer; display: flex; justify-content: center; align-items: center; 
+            opacity: 0.5; transition: opacity 0.2s;
+        }
+        .filter-icon-btn img { width: 100%; height: 100%; object-fit: contain; }
+        .filter-icon-btn.active { opacity: 1; border-bottom: 3px solid #FFD54F; }
+
+        /* [2] 수정됨: 더보기 버튼 스타일 (둥글고 노란색) */
+        #more-btn {
+            width: 100%; 
+            padding: 12px; 
+            margin-top: 15px; 
+            background-color: #FFD54F; /* 노란색 */
+            border: none; 
+            border-radius: 30px; /* 둥근 모서리 */
+            font-weight: bold; 
+            font-size: 14px;
+            cursor: pointer; 
+            color: #333;
+            box-shadow: 0 3px 5px rgba(0,0,0,0.1);
+        }
+        #more-btn:hover { background-color: #FFCA28; }
+
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div>
+            <span id="date-display" class="date-text"></span>
+            <span id="d-day-display" class="d-day"></span>
+        </div>
+        <div class="divider-line"></div>
+    </div>
+
+    <div class="money-section">
+        <div class="current-money" id="saved-money">0 원</div>
+        <div class="goal-container">
+            <span id="goal-money-display">/ 50,000 원</span>
+            <button class="edit-btn" onclick="openGoalModal()">
+                <img src="pencil.png" alt="수정" class="edit-icon-img">
+            </button>
+        </div>
+    </div>
+
+    <div class="piggy-wrapper">
+        <div class="piggy-container">
+            <img id="random-msg-img" src="" alt="메시지">
+            <div class="percent-bubble" id="percent-text">0%</div>
+            <img src="piggy.png" alt="돼지저금통" class="piggy-img">
+            <div class="coin-box" id="coin-box"></div>
+        </div>
+    </div>
+
+    <div class="action-buttons">
+        <button class="main-btn" onclick="openSaveModal()">💰 저금하기</button>
+        <button class="main-btn secondary" onclick="openHistoryModal()">📄 저금내역</button>
+    </div>
+
+    <div class="navbar">
+        <div class="nav-item active">
+            <div class="nav-icon-box"><img src="icon_home.png" class="nav-icon-img"></div>
+            <span class="nav-text">홈</span>
+        </div>
+        <a href="stat.html" class="nav-item">
+            <div class="nav-icon-box"><img src="icon_stat.png" class="nav-icon-img"></div>
+            <span class="nav-text">통계</span>
+        </a>
+        <a href="challenge.html" class="nav-item">
+            <div class="nav-icon-box"><img src="icon_challenge.png" class="nav-icon-img"></div>
+            <span class="nav-text">챌린지</span>
+        </a>
+        <a href="user.html" class="nav-item">
+            <div class="nav-icon-box"><img src="icon_user.png" class="nav-icon-img"></div>
+            <span class="nav-text">나의 정보</span>
+        </a>
+    </div>
+
+    <div id="goal-modal" class="modal-overlay">
+        <div class="modal-content">
+            <img src="back.png" class="modal-back-btn" onclick="closeModal('goal-modal')" alt="뒤로가기">
+            <div class="modal-title">목표 금액 설정</div>
+            <input type="number" id="goal-input" class="input-underline" value="50000">
+            <div class="money-add-btns">
+                <button class="add-btn" onclick="addAmount('goal-input', 1000)">+1천</button>
+                <button class="add-btn" onclick="addAmount('goal-input', 5000)">+5천</button>
+                <button class="add-btn" onclick="addAmount('goal-input', 10000)">+1만</button>
+            </div>
+            <button class="confirm-btn" onclick="confirmGoal()">설정 완료</button>
+        </div>
+    </div>
+
+    <div id="save-modal" class="modal-overlay">
+        <div class="modal-content">
+            <img src="back.png" class="modal-back-btn" onclick="closeModal('save-modal')" alt="뒤로가기">
+            <div class="modal-title">저금하기</div>
+            
+            <div class="step-block">
+                <div class="step-label">Step 1. 카테고리 선택</div>
+                <div class="category-grid">
+                    <div class="cat-item" onclick="selectCategory('meal', this)"><img src="cat_meal.png" class="cat-img"><span>식사</span></div>
+                    <div class="cat-item" onclick="selectCategory('transport', this)"><img src="cat_transport.png" class="cat-img"><span>교통</span></div>
+                    <div class="cat-item" onclick="selectCategory('shopping', this)"><img src="cat_shopping.png" class="cat-img"><span>쇼핑</span></div>
+                    <div class="cat-item" onclick="selectCategory('leisure', this)"><img src="cat_leisure.png" class="cat-img"><span>여가</span></div>
+                </div>
+            </div>
+            <div class="step-block">
+                <div class="step-label">Step 2. 세부 내용 선택</div>
+                <div id="chip-area" class="chip-container"><span style="color:#aaa; font-size:14px;">카테고리 선택 필요</span></div>
+            </div>
+            <div class="step-block">
+                <div class="step-label">Step 3. 금액 입력</div>
+                <input type="number" id="save-amount-input" class="input-box" placeholder="0">
+                <div class="money-add-btns">
+                    <button class="add-btn" onclick="addAmount('save-amount-input', 100)">+100</button>
+                    <button class="add-btn" onclick="addAmount('save-amount-input', 1000)">+1천</button>
+                    <button class="add-btn" onclick="addAmount('save-amount-input', 5000)">+5천</button>
+                </div>
+            </div>
+            <div class="step-block" style="border:none;">
+                <div class="step-label">Step 4. 메모</div>
+                <input type="text" id="save-memo-input" class="input-box" style="font-size:16px; text-align:left;" placeholder="내용 입력">
+            </div>
+            <button class="confirm-btn" onclick="completeSave()">저금 완료</button>
+        </div>
+    </div>
+
+    <div id="history-modal" class="modal-overlay">
+        <div class="modal-content">
+            <img src="back.png" class="modal-back-btn" onclick="closeModal('history-modal')" alt="뒤로가기">
+            <div class="modal-title">이번 달 저금 내역</div>
+            <div class="filter-bar">
+                <div class="filter-icon-btn" onclick="setHistoryFilter('meal')"><img src="cat_meal.png"></div>
+                <div class="filter-icon-btn" onclick="setHistoryFilter('transport')"><img src="cat_transport.png"></div>
+                <div class="filter-icon-btn" onclick="setHistoryFilter('shopping')"><img src="cat_shopping.png"></div>
+                <div class="filter-icon-btn" onclick="setHistoryFilter('leisure')"><img src="cat_leisure.png"></div>
+            </div>
+            <ul id="history-list-box" class="history-list"></ul>
+            <button id="more-btn" onclick="showMoreHistory()">⬇ 더 보기</button>
+        </div>
+    </div>
+
+    <script>
+        // 전역 변수
+        let currentUser = null; 
+        let historyData = [];   
+        let currentSaved = 0;   
+        let goalAmount = 50000;
+        let tempSave = { category: '', sub: '', amount: 0, memo: '' };
+
+        const subCategories = {
+            'meal': ['배달음식', '학식', '편의점', '마트', '레스토랑', '길거리', '회식'],
+            'transport': ['버스', '지하철', '택시', '기차', '킥보드', '자가용'],
+            'shopping': ['백화점', '의류가게', '기념품', '화장품', '다이소', '대형마트', '문구점'],
+            'leisure': ['미술', '음악', '스포츠', '문학', '휴식', '여행', '게임']
+        };
+
+        window.onload = function() {
+            const savedUser = localStorage.getItem('loginUser');
+            if(!savedUser) {
+                alert("로그인이 필요합니다.");
+                location.href = 'login.html';
+                return;
+            }
+            currentUser = JSON.parse(savedUser);
+
+            const savedGoal = localStorage.getItem('userGoal_' + currentUser.id);
+            if(savedGoal) {
+                goalAmount = parseInt(savedGoal);
+            }
+
+            setTodayDate();
+            loadServerData();
+        };
+
+        function loadServerData() {
+            fetch(`http://localhost:3000/api/savings/${currentUser.id}`)
+            .then(res => res.json())
+            .then(data => {
+                historyData = data;
+                
+                const now = new Date();
+                const thisMonth = now.getMonth() + 1;
+                const thisYear = now.getFullYear();
+                
+                currentSaved = historyData
+                    .filter(d => {
+                        const datePart = d.saved_date.split('T')[0]; 
+                        const parts = datePart.split('-');
+                        return parseInt(parts[0]) === thisYear && parseInt(parts[1]) === thisMonth;
+                    })
+                    .reduce((acc, cur) => acc + cur.amount, 0);
+
+                updateUI();
+            })
+            .catch(err => {
+                console.error("데이터 로드 실패:", err);
+                updateUI();
+            });
+        }
+
+        function updateUI() {
+            document.getElementById('saved-money').innerText = currentSaved.toLocaleString() + " 원";
+            document.getElementById('goal-money-display').innerText = "/ " + goalAmount.toLocaleString() + " 원";
+            
+            let percent = Math.floor((currentSaved / goalAmount) * 100);
+            if(percent > 100) percent = 100;
+            if(percent < 0) percent = 0; 
+
+            document.getElementById('percent-text').innerText = percent + "%";
+
+            const pigImg = document.querySelector('.piggy-img');
+            const step = Math.floor(percent / 5);
+
+            if(step === 0) {
+                pigImg.src = "piggy.png";
+            } else {
+                pigImg.src = `pig_step${step}.png`;
+            }
+        }
+
+        function setTodayDate() {
+            const now = new Date();
+            const dDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate() - now.getDate();
+            document.getElementById('date-display').innerText = `${now.getFullYear()}년 ${now.getMonth()+1}월`;
+            document.getElementById('d-day-display').innerText = `(D-${dDay})`;
+        }
+
+        // --- 모달 로직 ---
+        function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+        function openGoalModal() { 
+            document.getElementById('goal-input').value = goalAmount;
+            document.getElementById('goal-modal').classList.add('open'); 
+        }
+        function addAmount(id, amt) { const el = document.getElementById(id); el.value = (parseInt(el.value)||0) + amt; }
+        
+        function confirmGoal() { 
+            const inputVal = document.getElementById('goal-input').value;
+            if(inputVal) {
+                goalAmount = parseInt(inputVal);
+                localStorage.setItem('userGoal_' + currentUser.id, goalAmount);
+                updateUI(); 
+            }
+            closeModal('goal-modal'); 
+        }
+
+        function openSaveModal() {
+            tempSave = { category: '', sub: '', amount: 0, memo: '' };
+            document.querySelectorAll('.cat-item').forEach(el => el.classList.remove('selected'));
+            document.getElementById('chip-area').innerHTML = '<span style="color:#aaa;">카테고리 선택 필요</span>';
+            document.getElementById('save-amount-input').value = '';
+            document.getElementById('save-memo-input').value = '';
+            document.getElementById('save-modal').classList.add('open');
+        }
+
+        function selectCategory(cat, el) {
+            tempSave.category = cat;
+            document.querySelectorAll('.cat-item').forEach(e => e.classList.remove('selected'));
+            el.classList.add('selected');
+            
+            const chipArea = document.getElementById('chip-area');
+            if(chipArea) {
+                chipArea.innerHTML = '';
+                subCategories[cat].forEach(sub => {
+                    const chip = document.createElement('div'); chip.className = 'chip'; chip.innerText = sub;
+                    chip.onclick = () => { tempSave.sub = sub; document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected')); chip.classList.add('selected'); };
+                    chipArea.appendChild(chip);
+                });
+                const direct = document.createElement('div'); direct.className = 'chip'; direct.innerText = '직접 입력';
+                direct.onclick = () => { const txt = prompt('내용 입력'); if(txt) { tempSave.sub = txt; direct.classList.add('selected'); } };
+                chipArea.appendChild(direct);
+            }
+        }
+
+        function completeSave() {
+            const amt = parseInt(document.getElementById('save-amount-input').value);
+            if(!tempSave.category || !tempSave.sub || !amt) { alert('내용을 모두 입력해주세요'); return; }
+            
+            const now = new Date();
+            const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+            const newBalance = currentSaved + amt;
+
+            const saveData = {
+                userId: currentUser.id,
+                category: tempSave.category,
+                subCategory: tempSave.sub,
+                amount: amt,
+                memo: document.getElementById('save-memo-input').value,
+                balance: newBalance,
+                dateStr: dateStr
+            };
+
+            fetch('http://localhost:3000/api/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(saveData)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    alert('저금 완료!');
+                    loadServerData(); 
+                    closeModal('save-modal');
+                    
+                    const randomNum = Math.floor(Math.random() * 10) + 1;
+                    const msgImg = document.getElementById('random-msg-img');
+                    msgImg.src = `message${randomNum}.png`;
+                    msgImg.style.display = 'block';
+
+                    setTimeout(function() {
+                        msgImg.style.display = 'none';
+                    }, 5000);
+
+                } else {
+                    alert('저금 실패');
+                }
+            })
+            .catch(err => console.error(err));
+        }
+
+        let historyLimit = 5; let currentFilter = 'all';
+        
+        function openHistoryModal() { 
+            historyLimit = 5; 
+            currentFilter = 'all'; 
+            document.querySelectorAll('.filter-icon-btn').forEach(btn => btn.classList.remove('active'));
+            renderHistory(); 
+            document.getElementById('history-modal').classList.add('open'); 
+        }
+
+        function setHistoryFilter(cat) { 
+            currentFilter = (currentFilter === cat) ? 'all' : cat; 
+            document.querySelectorAll('.filter-icon-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if(currentFilter !== 'all' && btn.onclick.toString().includes(currentFilter)) {
+                    btn.classList.add('active');
+                }
+            });
+            renderHistory(); 
+        }
+
+        function showMoreHistory() { historyLimit += 5; renderHistory(); }
+        
+        function renderHistory() {
+            const list = document.getElementById('history-list-box'); list.innerHTML = '';
+            const now = new Date();
+            const thisMonth = now.getMonth() + 1;
+            const thisYear = now.getFullYear();
+            
+            let monthData = historyData.filter(d => {
+                const datePart = d.saved_date.split('T')[0];
+                const parts = datePart.split('-');
+                return parseInt(parts[0]) === thisYear && parseInt(parts[1]) === thisMonth;
+            });
+            
+            if(currentFilter !== 'all') monthData = monthData.filter(d => d.category === currentFilter);
+            
+            monthData.slice(0, historyLimit).forEach(item => {
+                const li = document.createElement('li');
+                
+                let bgClass = 'bg-default';
+                if(item.category === 'meal') bgClass = 'bg-meal';
+                else if(item.category === 'transport') bgClass = 'bg-transport';
+                else if(item.category === 'shopping') bgClass = 'bg-shopping';
+                else if(item.category === 'leisure') bgClass = 'bg-leisure';
+
+                li.className = `history-item ${bgClass}`; 
+                
+                const balanceText = item.balance ? item.balance.toLocaleString() : "누적 정보 없음";
+                const dateShort = item.saved_date.split('T')[0].substring(5); 
+
+                // [1] 수정됨: 메모가 있으면 표시
+                const memoHtml = item.memo ? `<div class="h-memo">${item.memo}</div>` : '';
+
+                li.innerHTML = `
+                    <div class="h-left">
+                        <div class="h-date">${dateShort}</div>
+                        <div class="h-title">${item.sub_category}</div>
+                        ${memoHtml}
+                    </div>
+                    <div class="h-right">
+                        <span class="h-amount">+${item.amount.toLocaleString()}원</span>
+                        <span class="h-total">${balanceText}원</span>
+                    </div>`;
+                list.appendChild(li);
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,112 @@
+[
+  {
+    "id": 1765435938833,
+    "userId": 1765434771323,
+    "category": "meal",
+    "sub_category": "배달음식",
+    "amount": 10000,
+    "balance": 10000,
+    "memo": "",
+    "saved_date": "2025-12-11T06:52:18.833Z"
+  },
+  {
+    "id": 1765437105038,
+    "userId": 1765434771323,
+    "category": "meal",
+    "sub_category": "회식",
+    "amount": 1000,
+    "balance": 11000,
+    "memo": "",
+    "saved_date": "2025-12-11T07:11:45.038Z"
+  },
+  {
+    "id": 1765437373088,
+    "userId": 1765434771323,
+    "category": "meal",
+    "sub_category": "배달음식",
+    "amount": 100,
+    "balance": 11100,
+    "memo": "",
+    "saved_date": "2025-12-11T07:16:13.088Z"
+  },
+  {
+    "id": 1765437386685,
+    "userId": 1765434771323,
+    "category": "transport",
+    "sub_category": "택시",
+    "amount": 1000,
+    "balance": 12100,
+    "memo": "",
+    "saved_date": "2025-12-11T07:16:26.685Z"
+  },
+  {
+    "id": 1765437678027,
+    "userId": 1765434771323,
+    "category": "transport",
+    "sub_category": "버스",
+    "amount": 1600,
+    "balance": 13700,
+    "memo": "중앙동에서 학교까지 걸어감",
+    "saved_date": "2025-12-11T07:21:18.027Z"
+  },
+  {
+    "id": 1765438265148,
+    "userId": 1765434771323,
+    "category": "leisure",
+    "sub_category": "음악",
+    "amount": 5000,
+    "balance": 18700,
+    "memo": "리코더 값 절약",
+    "saved_date": "2025-12-11T07:31:05.148Z"
+  },
+  {
+    "id": 1765440491723,
+    "userId": 1765434771323,
+    "category": "transport",
+    "sub_category": "버스",
+    "amount": 1600,
+    "balance": 20300,
+    "memo": "걸어서 갈거임",
+    "saved_date": "2025-12-11T08:08:11.723Z"
+  },
+  {
+    "id": 1765442439534,
+    "userId": 1765442366404,
+    "category": "meal",
+    "sub_category": "배달음식",
+    "amount": 14000,
+    "balance": 14000,
+    "memo": "엽기떡볶이 값 아낌",
+    "saved_date": "2025-12-11T08:40:39.534Z"
+  },
+  {
+    "id": 1765442458305,
+    "userId": 1765442366404,
+    "category": "transport",
+    "sub_category": "버스",
+    "amount": 1600,
+    "balance": 15600,
+    "memo": "버스비 아낌",
+    "saved_date": "2025-12-11T08:40:58.305Z"
+  },
+  {
+    "id": 1765442473302,
+    "userId": 1765442366404,
+    "category": "shopping",
+    "sub_category": "다이소",
+    "amount": 3000,
+    "balance": 18600,
+    "memo": "생활용품 값 아낌",
+    "saved_date": "2025-12-11T08:41:13.302Z"
+  },
+  {
+    "id": 1765442489404,
+    "userId": 1765442366404,
+    "category": "leisure",
+    "sub_category": "미술",
+    "amount": 10000,
+    "balance": 28600,
+    "memo": "물감 값 아낌",
+    "saved_date": "2025-12-11T08:41:29.404Z"
+  }
+]

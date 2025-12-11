@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>저축 앱 - 로그인</title>
+    <style>
+        /* [기본 스타일] */
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Pretendard', sans-serif; background-color: #FAF4EC; display: flex; justify-content: center; align-items: center; }
+        .container { width: 100%; max-width: 400px; height: 100%; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: center; position: relative; }
+        
+        .screen { width: 100%; display: none; flex-direction: column; align-items: center; animation: fadeIn 0.3s ease-in-out; position: relative; }
+        .screen.active { display: flex; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* 뒤로가기 버튼 */
+        .back-btn {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .back-btn:hover { transform: scale(1.1); }
+
+        h1 { font-size: 24px; font-weight: bold; margin-bottom: 40px; color: #000; margin-top: 20px; }
+        
+        /* 입력 그룹 */
+        .input-group { width: 100%; margin-bottom: 15px; display: flex; align-items: center; }
+        .input-label { width: 50px; font-weight: bold; font-size: 18px; color: #000; }
+        .input-field { flex: 1; padding: 15px; border: none; border-radius: 8px; background-color: #EFEBE6; font-size: 14px; color: #333; outline: none; }
+        
+        /* 회원가입/비번변경 인풋 */
+        .signup-row { width: 100%; display: flex; gap: 8px; margin-bottom: 10px; align-items: center; }
+        .signup-input { width: 100%; padding: 15px; border: none; border-radius: 8px; background-color: #EFEBE6; font-size: 14px; box-sizing: border-box; margin-bottom: 10px; }
+        .signup-input.flex-1 { flex: 1; margin-bottom: 0; }
+        
+        /* 비밀번호 확인 아이콘 */
+        .pw-wrapper { position: relative; width: 100%; margin-bottom: 10px; }
+        .pw-wrapper .signup-input { margin-bottom: 0; width: 100%; } 
+        .pw-status { 
+            position: absolute; right: -35px; top: 50%; transform: translateY(-50%); 
+            font-size: 24px; font-weight: bold; 
+        }
+        .status-match { color: #4CAF50; } 
+        .status-mismatch { color: #F44336; } 
+
+        /* 버튼들 */
+        .check-btn { 
+            padding: 10px 15px; background-color: #FFD54F; color: #333; 
+            border: none; border-radius: 20px; font-size: 13px; font-weight: bold; 
+            cursor: pointer; white-space: nowrap; box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+        }
+        .check-btn:hover { background-color: #FFCA28; }
+
+        .primary-btn { width: 100%; max-width: 200px; padding: 15px; margin-top: 20px; border: none; border-radius: 25px; background-color: #FFD54F; color: #000; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        
+        .divider { width: 100%; height: 1px; background-color: #DDD; margin: 30px 0; }
+        .footer-links { margin-top: 15px; display: flex; gap: 15px; font-size: 13px; color: #666; }
+        .link-text { color: #333; text-decoration: underline; font-weight: bold; cursor: pointer; }
+        
+        /* 탭 스타일 */
+        .find-tabs { 
+            display: flex; width: 100%; margin-bottom: 25px; 
+            justify-content: center; gap: 20px; 
+        }
+        .find-tab { 
+            padding: 10px 10px; border-bottom: 3px solid #E0E0E0; 
+            cursor: pointer; font-weight: bold; color: #999; transition: all 0.3s; width: 100px; text-align: center;
+        }
+        .find-tab.active { border-bottom: 3px solid #FFD54F; color: #333; }
+        
+        .find-content { width: 100%; display: none; flex-direction: column; }
+        .find-content.active { display: flex; }
+
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <div id="login-screen" class="screen active">
+            <h1>로그인</h1>
+            <div class="input-group">
+                <span class="input-label">ID</span>
+                <input type="text" id="login-id" class="input-field" placeholder="아이디 입력">
+            </div>
+            <div class="input-group">
+                <span class="input-label">PW</span>
+                <input type="password" id="login-pw" class="input-field" placeholder="비밀번호 입력">
+            </div>
+            <button class="primary-btn" onclick="tryLogin()">로그인</button>
+            
+            <div class="footer-links">
+                <span class="link-text" onclick="showFind('id')">아이디 찾기</span> | 
+                <span class="link-text" onclick="showFind('pw')">비밀번호 찾기</span> |
+                <span class="link-text" onclick="showChangePw()">비밀번호 변경</span>
+            </div>
+
+            <div class="divider"></div>
+            <div style="text-align: center; font-size: 14px; color: #666;">
+                계정이 없으신가요? <br>
+                <span class="link-text" onclick="showSignUp()">회원가입</span>
+            </div>
+        </div>
+
+        <div id="signup-screen" class="screen">
+            <img src="back.png" alt="뒤로가기" class="back-btn" onclick="showScreen('login-screen')">
+            <h1>회원가입</h1>
+            
+            <div class="signup-row">
+                <input type="text" id="reg-id" class="signup-input flex-1" placeholder="아이디">
+                <button class="check-btn" onclick="checkId()">중복확인</button>
+            </div>
+
+            <input type="password" id="reg-pw" class="signup-input" placeholder="비밀번호" oninput="checkPwMatch('reg')">
+            <div class="pw-wrapper">
+                <input type="password" id="reg-pw-confirm" class="signup-input" placeholder="비밀번호 재입력" oninput="checkPwMatch('reg')">
+                <span id="reg-pw-status-icon" class="pw-status"></span>
+            </div>
+            
+            <input type="text" id="reg-nick" class="signup-input" placeholder="닉네임">
+            <div class="signup-row">
+                <input type="email" id="reg-email" class="signup-input flex-1" placeholder="이메일 (abc@example.com)">
+                <button class="check-btn" onclick="checkEmail()">중복확인</button>
+            </div>
+
+            <button class="primary-btn" onclick="trySignUp()">완료</button>
+        </div>
+
+        <div id="find-screen" class="screen">
+            <img src="back.png" alt="뒤로가기" class="back-btn" onclick="showScreen('login-screen')">
+            <h1>계정 찾기</h1>
+            <div class="find-tabs">
+                <div id="tab-id" class="find-tab active" onclick="switchFindTab('id')">아이디 찾기</div>
+                <div id="tab-pw" class="find-tab" onclick="switchFindTab('pw')">비밀번호 찾기</div>
+            </div>
+
+            <div id="content-id" class="find-content active">
+                <p style="font-size:14px; color:#666; margin-bottom:10px;">가입 시 등록한 이메일을 입력해주세요.</p>
+                <input type="email" id="find-id-email" class="signup-input" placeholder="이메일 입력">
+                <button class="primary-btn" onclick="findId()">아이디 찾기</button>
+            </div>
+
+            <div id="content-pw" class="find-content">
+                <p style="font-size:14px; color:#666; margin-bottom:10px;">아이디와 이메일을 모두 입력해주세요.</p>
+                <input type="text" id="find-pw-id" class="signup-input" placeholder="아이디 입력">
+                <input type="email" id="find-pw-email" class="signup-input" placeholder="이메일 입력">
+                <button class="primary-btn" onclick="findPw()">비밀번호 찾기</button>
+            </div>
+        </div>
+
+        <div id="change-pw-screen" class="screen">
+            <img src="back.png" alt="뒤로가기" class="back-btn" onclick="showScreen('login-screen')">
+            <h1>비밀번호 변경</h1>
+            
+            <p style="font-size:14px; color:#666; margin-bottom:15px;">안전한 변경을 위해<br>아이디와 기존 비밀번호를 입력해주세요.</p>
+
+            <input type="text" id="cp-id" class="signup-input" placeholder="아이디 입력">
+            
+            <input type="password" id="cp-old-pw" class="signup-input" placeholder="기존 비밀번호">
+            
+            <div style="width:100%; height:1px; background:#DDD; margin:15px 0;"></div>
+
+            <input type="password" id="cp-new-pw" class="signup-input" placeholder="새 비밀번호" oninput="checkPwMatch('cp')">
+            <div class="pw-wrapper">
+                <input type="password" id="cp-new-pw-confirm" class="signup-input" placeholder="새 비밀번호 확인" oninput="checkPwMatch('cp')">
+                <span id="cp-pw-status-icon" class="pw-status"></span>
+            </div>
+
+            <button class="primary-btn" onclick="tryChangePw()">변경 완료</button>
+        </div>
+
+    </div>
+
+    <script>
+        let isIdChecked = false;
+        let isEmailChecked = false;
+
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(el => el.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            
+            // 입력 초기화
+            if(screenId === 'signup-screen') {
+                document.getElementById('reg-pw-status-icon').innerText = ""; 
+            }
+            if(screenId === 'change-pw-screen') {
+                document.getElementById('cp-pw-status-icon').innerText = "";
+            }
+        }
+        
+        function showSignUp() { showScreen('signup-screen'); }
+        function showFind(type) { showScreen('find-screen'); switchFindTab(type); }
+        function showChangePw() { showScreen('change-pw-screen'); }
+
+        function switchFindTab(type) {
+            document.querySelectorAll('.find-tab').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.find-content').forEach(el => el.classList.remove('active'));
+            if(type === 'id') {
+                document.getElementById('tab-id').classList.add('active');
+                document.getElementById('content-id').classList.add('active');
+            } else {
+                document.getElementById('tab-pw').classList.add('active');
+                document.getElementById('content-pw').classList.add('active');
+            }
+        }
+
+        // [수정] 비밀번호 체크 함수 (type 인자로 재사용)
+        // type: 'reg' (회원가입) or 'cp' (비번변경)
+        function checkPwMatch(type) {
+            let pwId, confirmId, iconId;
+            
+            if (type === 'reg') {
+                pwId = 'reg-pw'; confirmId = 'reg-pw-confirm'; iconId = 'reg-pw-status-icon';
+            } else {
+                pwId = 'cp-new-pw'; confirmId = 'cp-new-pw-confirm'; iconId = 'cp-pw-status-icon';
+            }
+
+            const pw = document.getElementById(pwId).value;
+            const confirm = document.getElementById(confirmId).value;
+            const icon = document.getElementById(iconId);
+
+            if(!pw || !confirm) { icon.innerText = ""; return; }
+            if(pw === confirm) {
+                icon.innerText = "✔"; icon.className = "pw-status status-match";
+            } else {
+                icon.innerText = "✘"; icon.className = "pw-status status-mismatch";
+            }
+        }
+
+        // [API] 기본 기능들
+        function checkId() {
+            const id = document.getElementById('reg-id').value;
+            if(!id) { alert("아이디를 입력해주세요."); return; }
+            fetch('http://localhost:3000/api/check-id', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ loginId: id })
+            }).then(res=>res.json()).then(data=>{
+                if(data.available) { alert("사용 가능한 아이디입니다."); isIdChecked = true; } 
+                else { alert("이미 사용 중인 아이디입니다."); isIdChecked = false; }
+            });
+        }
+
+        function checkEmail() {
+            const email = document.getElementById('reg-email').value;
+            if(!email) { alert("이메일을 입력해주세요."); return; }
+            fetch('http://localhost:3000/api/check-email', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email })
+            }).then(res=>res.json()).then(data=>{
+                if(data.available) { alert("사용 가능한 이메일입니다."); isEmailChecked = true; } 
+                else { alert("이미 등록된 이메일입니다."); isEmailChecked = false; }
+            });
+        }
+
+        function trySignUp() {
+            const id = document.getElementById('reg-id').value;
+            const pw = document.getElementById('reg-pw').value;
+            const pwConfirm = document.getElementById('reg-pw-confirm').value;
+            const nick = document.getElementById('reg-nick').value;
+            const email = document.getElementById('reg-email').value;
+
+            if(!id || !pw || !pwConfirm || !nick || !email) { alert("모든 내용을 입력해주세요."); return; }
+            if(pw !== pwConfirm) { alert("비밀번호가 일치하지 않습니다."); return; }
+
+            fetch('http://localhost:3000/api/signup', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ loginId: id, password: pw, nickname: nick, email: email })
+            }).then(res=>res.json()).then(data=>{
+                if (data.success) { alert("회원가입 성공! 로그인 해주세요."); showScreen('login-screen'); } 
+                else { alert("가입 실패: " + data.message); }
+            });
+        }
+
+        function tryLogin() {
+            const id = document.getElementById('login-id').value;
+            const pw = document.getElementById('login-pw').value;
+
+            fetch('http://localhost:3000/api/login', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ loginId: id, password: pw })
+            }).then(res=>res.json()).then(data=>{
+                if (data.success) {
+                    alert(data.user.nickname + "님 환영합니다!");
+                    localStorage.setItem('loginUser', JSON.stringify(data.user));
+                    location.href = 'home.html';
+                } else { alert("로그인 실패: " + data.message); }
+            }).catch(err => alert("서버 연결 오류!"));
+        }
+
+        function findId() {
+            const email = document.getElementById('find-id-email').value;
+            if(!email) return alert("이메일을 입력해주세요.");
+            fetch('http://localhost:3000/api/find-id', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email })
+            }).then(res=>res.json()).then(data=>{
+                if(data.success) { alert("회원님의 아이디는 [ " + data.loginId + " ] 입니다."); showScreen('login-screen'); } 
+                else alert("해당 이메일로 가입된 계정이 없습니다.");
+            });
+        }
+
+        function findPw() {
+            const id = document.getElementById('find-pw-id').value;
+            const email = document.getElementById('find-pw-email').value;
+            if(!id || !email) return alert("정보를 모두 입력해주세요.");
+            fetch('http://localhost:3000/api/find-pw', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ loginId: id, email: email })
+            }).then(res=>res.json()).then(data=>{
+                if(data.success) { alert("회원님의 비밀번호는 [ " + data.password + " ] 입니다."); showScreen('login-screen'); } 
+                else alert("일치하는 회원 정보를 찾을 수 없습니다.");
+            });
+        }
+
+        // [추가] 비밀번호 변경 시도
+        function tryChangePw() {
+            const id = document.getElementById('cp-id').value;
+            const oldPw = document.getElementById('cp-old-pw').value;
+            const newPw = document.getElementById('cp-new-pw').value;
+            const confirmPw = document.getElementById('cp-new-pw-confirm').value;
+
+            if(!id || !oldPw || !newPw || !confirmPw) { alert("모든 정보를 입력해주세요."); return; }
+            if(newPw !== confirmPw) { alert("새 비밀번호가 일치하지 않습니다."); return; }
+
+            fetch('http://localhost:3000/api/user/change-pw', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ loginId: id, currentPassword: oldPw, newPassword: newPw })
+            }).then(res=>res.json()).then(data=>{
+                if(data.success) {
+                    alert("비밀번호가 성공적으로 변경되었습니다.\n다시 로그인해주세요.");
+                    showScreen('login-screen');
+                    // 입력창 비우기
+                    document.getElementById('cp-id').value = "";
+                    document.getElementById('cp-old-pw').value = "";
+                    document.getElementById('cp-new-pw').value = "";
+                    document.getElementById('cp-new-pw-confirm').value = "";
+                    document.getElementById('cp-pw-status-icon').innerText = "";
+                } else {
+                    alert("변경 실패: " + data.message);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

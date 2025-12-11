@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1765439770336,
+    "user_id": 1765434771323,
+    "title": "배달음식 5000원 이내 챌린지",
+    "category": "meal",
+    "sub_category": "배달음식",
+    "target_amount": 5000,
+    "saved_amount": 0,
+    "start_date": "2025-12-11",
+    "end_date": "2025-12-18",
+    "status": "fail"
+  },
+  {
+    "id": 1765439882203,
+    "user_id": 1765434771323,
+    "title": "챌린지",
+    "category": "meal",
+    "sub_category": "배달음식",
+    "target_amount": 5000,
+    "saved_amount": 20600,
+    "start_date": "2025-12-11",
+    "end_date": "2025-12-18",
+    "status": "ongoing"
+  },
+  {
+    "id": 1765442542508,
+    "user_id": 1765442366404,
+    "title": "3일간 배달음식 2만원 이내 절약 챌린지!",
+    "category": "meal",
+    "sub_category": "배달음식",
+    "target_amount": 20000,
+    "saved_amount": 16000,
+    "start_date": "2025-12-11",
+    "end_date": "2025-12-13",
+    "status": "fail"
+  },
+  {
+    "id": 1765443116366,
+    "user_id": 1765442366404,
+    "title": "8일간 배달음식 5000원 이내 챌린지",
+    "category": "meal",
+    "sub_category": "배달음식",
+    "target_amount": 5000,
+    "saved_amount": 0,
+    "start_date": "2025-12-11",
+    "end_date": "2025-12-18",
+    "status": "ongoing"
+  }
+]

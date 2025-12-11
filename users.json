@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1765434248467,
+    "loginId": "godping35",
+    "password": "a1234",
+    "nickname": "김테스트",
+    "email": "godping35@naver.com"
+  },
+  {
+    "id": 1765434771323,
+    "loginId": "test",
+    "password": "a1234",
+    "nickname": "김테스트민1",
+    "email": "godping35@naver.com"
+  },
+  {
+    "id": 1765442297521,
+    "loginId": "test2",
+    "password": "a1234",
+    "nickname": "김테스트민",
+    "email": "test2@naver.com",
+    "created_at": "2025-12-11T08:38:17.521Z"
+  },
+  {
+    "id": 1765442366404,
+    "loginId": "test3",
+    "password": "a1234",
+    "nickname": "김테스트민",
+    "email": "test3@naver.com",
+    "created_at": "2025-12-11T08:39:26.404Z"
+  }
+]
