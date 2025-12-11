@@ -274,7 +274,7 @@
         };
 
         function loadServerData() {
-            fetch(`http://localhost:3000/api/challenges/${currentUser.id}`)
+            fetch(`https://web-group-i.onrender.com/api/challenges/${currentUser.id}`)
             .then(res => res.json())
             .then(data => {
                 challenges = data;
@@ -304,7 +304,7 @@
             if(!newChallenge.startStr || !newChallenge.endStr) { alert("기간을 선택해주세요 (Step 4)"); return; }
             if(!title) { alert("챌린지 이름을 입력해주세요 (Step 5)"); return; }
 
-            fetch('http://localhost:3000/api/challenge', {
+            fetch('https://web-group-i.onrender.com/api/challenge', {
                 method: 'POST', 
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({
@@ -347,7 +347,7 @@
         }
 
         function updateChallengeStatus(id, savedAmount, status) {
-            fetch('http://localhost:3000/api/challenge/update', {
+            fetch('https://web-group-i.onrender.com/api/challenge/update', {
                 method: 'POST', headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({ id, savedAmount, status })
             })

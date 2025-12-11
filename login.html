@@ -235,7 +235,7 @@
         function checkId() {
             const id = document.getElementById('reg-id').value;
             if(!id) { alert("아이디를 입력해주세요."); return; }
-            fetch('http://localhost:3000/api/check-id', {
+            fetch('https://web-group-i.onrender.com/api/check-id', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ loginId: id })
             }).then(res=>res.json()).then(data=>{
                 if(data.available) { alert("사용 가능한 아이디입니다."); isIdChecked = true; } 
@@ -246,7 +246,7 @@
         function checkEmail() {
             const email = document.getElementById('reg-email').value;
             if(!email) { alert("이메일을 입력해주세요."); return; }
-            fetch('http://localhost:3000/api/check-email', {
+            fetch('https://web-group-i.onrender.com/api/check-email', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email })
             }).then(res=>res.json()).then(data=>{
                 if(data.available) { alert("사용 가능한 이메일입니다."); isEmailChecked = true; } 
@@ -264,7 +264,7 @@
             if(!id || !pw || !pwConfirm || !nick || !email) { alert("모든 내용을 입력해주세요."); return; }
             if(pw !== pwConfirm) { alert("비밀번호가 일치하지 않습니다."); return; }
 
-            fetch('http://localhost:3000/api/signup', {
+            fetch('https://web-group-i.onrender.com/api/signup', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ loginId: id, password: pw, nickname: nick, email: email })
             }).then(res=>res.json()).then(data=>{
@@ -277,7 +277,7 @@
             const id = document.getElementById('login-id').value;
             const pw = document.getElementById('login-pw').value;
 
-            fetch('http://localhost:3000/api/login', {
+            fetch('https://web-group-i.onrender.com/api/login', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ loginId: id, password: pw })
             }).then(res=>res.json()).then(data=>{
@@ -292,7 +292,7 @@
         function findId() {
             const email = document.getElementById('find-id-email').value;
             if(!email) return alert("이메일을 입력해주세요.");
-            fetch('http://localhost:3000/api/find-id', {
+            fetch('https://web-group-i.onrender.com/api/find-id', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email })
             }).then(res=>res.json()).then(data=>{
                 if(data.success) { alert("회원님의 아이디는 [ " + data.loginId + " ] 입니다."); showScreen('login-screen'); } 
@@ -304,7 +304,7 @@
             const id = document.getElementById('find-pw-id').value;
             const email = document.getElementById('find-pw-email').value;
             if(!id || !email) return alert("정보를 모두 입력해주세요.");
-            fetch('http://localhost:3000/api/find-pw', {
+            fetch('https://web-group-i.onrender.com/api/find-pw', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ loginId: id, email: email })
             }).then(res=>res.json()).then(data=>{
                 if(data.success) { alert("회원님의 비밀번호는 [ " + data.password + " ] 입니다."); showScreen('login-screen'); } 
@@ -322,7 +322,7 @@
             if(!id || !oldPw || !newPw || !confirmPw) { alert("모든 정보를 입력해주세요."); return; }
             if(newPw !== confirmPw) { alert("새 비밀번호가 일치하지 않습니다."); return; }
 
-            fetch('http://localhost:3000/api/user/change-pw', {
+            fetch('https://web-group-i.onrender.com/api/user/change-pw', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ loginId: id, currentPassword: oldPw, newPassword: newPw })
             }).then(res=>res.json()).then(data=>{

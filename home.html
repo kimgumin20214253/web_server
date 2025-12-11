@@ -349,7 +349,7 @@
         };
 
         function loadServerData() {
-            fetch(`http://localhost:3000/api/savings/${currentUser.id}`)
+            fetch(`https://web-group-i.onrender.com/api/savings/${currentUser.id}`)
             .then(res => res.json())
             .then(data => {
                 historyData = data;
@@ -465,7 +465,7 @@
                 dateStr: dateStr
             };
 
-            fetch('http://localhost:3000/api/save', {
+            fetch('https://web-group-i.onrender.com/api/save', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(saveData)
