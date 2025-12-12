@@ -169,10 +169,12 @@
             cursor: pointer; 
         }
         .confirm-btn { width: 100%; padding: 15px; background-color: #FFD54F; border: none; border-radius: 30px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .confirm-btn.edit-mode { background-color: #4D96FF; color: white; } /* 수정 완료 버튼 색상 */
         
         /* 저금 내역 리스트 */
         .history-list { list-style: none; padding: 0; margin: 0; }
-        .history-item { padding: 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+        /* [수정됨]: 버튼 공간 확보를 위해 padding-right 조정 */
+        .history-item { padding: 15px 15px 15px 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; position: relative; }
         
         .bg-meal { background-color: #FFCDD2; }
         .bg-transport { background-color: #C8E6C9; }
@@ -191,6 +193,39 @@
         .h-amount { font-size: 16px; font-weight: bold; color: #333; display: block; }
         .h-total { font-size: 11px; color: #777; margin-top: 3px; font-weight: 500; }
         
+        /* [추가됨]: 수정/삭제 버튼 컨테이너 */
+        .h-actions {
+            position: absolute;
+            right: 15px; /* 오른쪽 padding에 맞춤 */
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            gap: 5px;
+            z-index: 10; /* 버튼이 잘 눌리도록 */
+        }
+        .h-action-btn {
+            background: none;
+            border: none;
+            padding: 3px;
+            cursor: pointer;
+            width: 24px;
+            height: 24px;
+            opacity: 0.6;
+            transition: opacity 0.2s;
+        }
+        .h-action-btn:hover {
+            opacity: 1;
+        }
+        .h-action-btn img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        /* [수정됨]: 기존 h-right는 버튼 공간을 비워야 함 */
+        .history-item { padding-right: 70px; } /* 버튼 공간을 위해 오른쪽 여백 추가 */
+        .h-right { margin-right: 0; } /* h-right 자체의 오른쪽 마진은 제거 */
+
+
         /* 내역 필터 버튼 */
         .filter-bar { display: flex; gap: 15px; justify-content: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #EEE; }
         .filter-icon-btn { 
@@ -323,7 +358,7 @@
     <div id="save-modal" class="modal-overlay">
         <div class="modal-content">
             <img src="back.png" class="modal-back-btn" onclick="closeModal('save-modal')" alt="뒤로가기">
-            <div class="modal-title">저금하기</div>
+            <div class="modal-title" id="save-modal-title">저금하기</div>
             
             <div class="step-block">
                 <div class="step-label">Step 1. 카테고리 선택</div>
@@ -356,7 +391,7 @@
                 <div class="step-label">Step 4. 메모</div>
                 <input type="text" id="save-memo-input" class="input-box" style="font-size:16px; text-align:left;" placeholder="내용 입력">
             </div>
-            <button class="confirm-btn" onclick="completeSave()">저금 완료</button>
+            <button class="confirm-btn" id="save-confirm-btn" onclick="completeSave()">저금 완료</button>
         </div>
     </div>
 
@@ -383,12 +418,19 @@
         let goalAmount = 50000;
         let tempSave = { category: '', sub: '', amount: 0, memo: '' };
         let isGoalAchieved = false; // 목표 달성 상태 추적 변수 추가
+        let editingHistoryId = null; // 수정 중인 내역 ID 저장
 
         const subCategories = {
             'meal': ['배달음식', '학식', '편의점', '마트', '레스토랑', '길거리', '회식'],
             'transport': ['버스', '지하철', '택시', '기차', '킥보드', '자가용'],
             'shopping': ['백화점', '의류가게', '기념품', '화장품', '다이소', '대형마트', '문구점'],
             'leisure': ['미술', '음악', '스포츠', '문학', '휴식', '여행', '게임']
+        };
+        const catMap = {
+            'meal': '식사',
+            'transport': '교통',
+            'shopping': '쇼핑',
+            'leisure': '여가'
         };
 
         window.onload = function() {
@@ -423,13 +465,12 @@
                     .filter(d => {
                         const datePart = d.saved_date.split('T')[0]; 
                         const parts = datePart.split('-');
-                        // DB에서 가져온 데이터의 연도와 월이 현재와 일치하는 것만 필터링
                         return parseInt(parts[0]) === thisYear && parseInt(parts[1]) === thisMonth;
                     })
-                    // 누적 금액 계산: 데이터 구조상 amount만 합산
                     .reduce((acc, cur) => acc + cur.amount, 0); 
 
                 updateUI();
+                renderHistory(); // 데이터 로드 후 내역도 업데이트
             })
             .catch(err => {
                 console.error("데이터 로드 실패:", err);
@@ -437,7 +478,7 @@
             });
         }
 
-        // [수정됨]: UI 업데이트 및 100% 달성 로직 추가
+        // ... (updateUI, showCelebrationPopup, setTodayDate 함수는 이전과 동일)
         function updateUI() {
             document.getElementById('saved-money').innerText = currentSaved.toLocaleString() + " 원";
             document.getElementById('goal-money-display').innerText = "/ " + goalAmount.toLocaleString() + " 원";
@@ -469,21 +510,15 @@
                 if(step === 0) {
                     pigImg.src = "piggy.png";
                 } else {
-                    // pig_step1.png ~ pig_step20.png (100% / 5 = 20 steps)
-                    pigImg.src = `pig_step${step}.png`; 
+                    pigImg.src = `pig_step${step}.png`;
                 }
             }
         }
 
-        // [추가됨]: 100% 달성 팝업 함수
         function showCelebrationPopup() {
             const popup = document.getElementById('celebration-popup');
             popup.style.display = 'block';
-
-            // 5초 후 사라지도록 설정 (CSS 애니메이션과 동일)
-            setTimeout(() => {
-                popup.style.display = 'none';
-            }, 5000);
+            setTimeout(() => { popup.style.display = 'none'; }, 5000);
         }
 
         function setTodayDate() {
@@ -492,6 +527,7 @@
             document.getElementById('date-display').innerText = `${now.getFullYear()}년 ${now.getMonth()+1}월`;
             document.getElementById('d-day-display').innerText = `(D-${dDay})`;
         }
+        // ... (updateUI, showCelebrationPopup, setTodayDate 함수 끝)
 
         // --- 모달 로직 ---
         function closeModal(id) { document.getElementById(id).classList.remove('open'); }
@@ -499,13 +535,10 @@
             document.getElementById('goal-input').value = goalAmount;
             document.getElementById('goal-modal').classList.add('open'); 
         }
-        
-        // [수정됨]: addAmount 함수 (음수 처리 포함)
         function addAmount(id, amt) { 
             const el = document.getElementById(id); 
             let currentVal = parseInt(el.value)||0;
             currentVal += amt;
-            // 금액이 음수가 되지 않도록 방지
             if (currentVal < 0) currentVal = 0; 
             el.value = currentVal; 
         }
@@ -520,12 +553,52 @@
             closeModal('goal-modal'); 
         }
 
-        function openSaveModal() {
-            tempSave = { category: '', sub: '', amount: 0, memo: '' };
+        // [수정됨]: 저금하기/수정하기 모달 열기 함수 (Mode 분리)
+        function openSaveModal(mode = 'save', data = null) {
+            editingHistoryId = null; 
+            
+            // UI 초기화
             document.querySelectorAll('.cat-item').forEach(el => el.classList.remove('selected'));
             document.getElementById('chip-area').innerHTML = '<span style="color:#aaa;">카테고리 선택 필요</span>';
             document.getElementById('save-amount-input').value = '';
             document.getElementById('save-memo-input').value = '';
+            
+            const titleEl = document.getElementById('save-modal-title');
+            const btnEl = document.getElementById('save-confirm-btn');
+
+            if (mode === 'edit' && data) {
+                editingHistoryId = data.id;
+                titleEl.innerText = '저금 내역 수정';
+                btnEl.innerText = '수정 완료';
+                btnEl.classList.add('edit-mode');
+                btnEl.onclick = completeEdit;
+                
+                // 데이터 채우기
+                document.getElementById('save-amount-input').value = data.amount;
+                document.getElementById('save-memo-input').value = data.memo;
+                selectCategory(data.category, document.querySelector(`.cat-item[onclick*='${data.category}']`));
+                
+                // 서브 카테고리 자동 선택
+                setTimeout(() => {
+                    const subChip = document.querySelector(`.chip[onclick*='${data.sub_category}']`);
+                    if (subChip) {
+                        tempSave.sub = data.sub_category;
+                        subChip.classList.add('selected');
+                    } else {
+                        // 직접 입력일 경우를 대비해 tempSave에 sub 저장만 해둠
+                        tempSave.sub = data.sub_category; 
+                    }
+                }, 100);
+
+            } else {
+                // 저금 모드
+                titleEl.innerText = '저금하기';
+                btnEl.innerText = '저금 완료';
+                btnEl.classList.remove('edit-mode');
+                btnEl.onclick = completeSave;
+                tempSave = { category: '', sub: '', amount: 0, memo: '' };
+            }
+
             document.getElementById('save-modal').classList.add('open');
         }
 
@@ -548,6 +621,7 @@
             }
         }
 
+        // [수정됨]: 신규 저금 완료 함수
         function completeSave() {
             const amt = parseInt(document.getElementById('save-amount-input').value);
             if(!tempSave.category || !tempSave.sub || !amt || amt <= 0) { 
@@ -580,18 +654,82 @@
                     alert('저금 완료!');
                     loadServerData(); 
                     closeModal('save-modal');
-                    
+                    // 메시지 팝업 로직
                     const randomNum = Math.floor(Math.random() * 10) + 1;
                     const msgImg = document.getElementById('random-msg-img');
                     msgImg.src = `message${randomNum}.png`;
                     msgImg.style.display = 'block';
-
-                    setTimeout(function() {
-                        msgImg.style.display = 'none';
-                    }, 5000);
-
+                    setTimeout(function() { msgImg.style.display = 'none'; }, 5000);
                 } else {
                     alert('저금 실패');
+                }
+            })
+            .catch(err => console.error(err));
+        }
+
+        // [추가됨]: 내역 수정 완료 함수
+        function completeEdit() {
+            if (!editingHistoryId) return;
+
+            const amt = parseInt(document.getElementById('save-amount-input').value);
+            if(!tempSave.category || !tempSave.sub || !amt || amt === 0) {
+                 alert('내용과 금액을 입력해주세요. (금액은 0이 될 수 없습니다.)'); 
+                 return;
+            }
+
+            const updateData = {
+                id: editingHistoryId, // DB에서 이 ID를 기준으로 업데이트
+                category: tempSave.category,
+                subCategory: tempSave.sub,
+                amount: amt,
+                memo: document.getElementById('save-memo-input').value,
+                // balance는 서버에서 재계산하는 것이 안전함. 여기서는 변경된 내역만 보냄.
+            };
+
+            fetch('/api/savings/update', { // 서버에 업데이트 API 엔드포인트가 있다고 가정
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updateData)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    alert('내역이 수정되었습니다.');
+                    loadServerData(); // 데이터 다시 로드 및 UI 업데이트
+                    closeModal('save-modal');
+                    closeModal('history-modal'); // 내역 창도 닫기
+                } else {
+                    alert('수정 실패');
+                }
+            })
+            .catch(err => console.error(err));
+        }
+
+        // [추가됨]: 수정 버튼 클릭 시
+        function openEditModal(id) {
+            const itemToEdit = historyData.find(d => d.id === id);
+            if (itemToEdit) {
+                closeModal('history-modal');
+                openSaveModal('edit', itemToEdit);
+            }
+        }
+
+        // [추가됨]: 삭제 버튼 클릭 시
+        function deleteHistory(id) {
+            if (!confirm("정말로 이 저금 내역을 삭제하시겠습니까?")) return;
+
+            fetch('/api/savings/delete', { // 서버에 삭제 API 엔드포인트가 있다고 가정
+                method: 'POST', // DELETE 대신 POST를 사용하는 경우가 많음
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: id, userId: currentUser.id })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    alert('내역이 삭제되었습니다.');
+                    loadServerData(); // 데이터 다시 로드 및 UI 업데이트
+                } else {
+                    alert('삭제 실패');
                 }
             })
             .catch(err => console.error(err));
@@ -620,6 +758,7 @@
 
         function showMoreHistory() { historyLimit += 5; renderHistory(); }
         
+        // [수정됨]: 수정/삭제 버튼 포함하여 내역 렌더링
         function renderHistory() {
             const list = document.getElementById('history-list-box'); list.innerHTML = '';
             const now = new Date();
@@ -645,11 +784,9 @@
 
                 li.className = `history-item ${bgClass}`; 
                 
-                // [수정됨]: balance가 문자열 'null'로 오거나 값이 없을 경우 처리 
                 const balanceText = item.balance && item.balance !== 'null' ? item.balance.toLocaleString() : "누적 정보 없음";
                 const dateShort = item.saved_date.split('T')[0].substring(5); 
 
-                // [1] 수정됨: 메모가 있으면 표시
                 const memoHtml = item.memo ? `<div class="h-memo">${item.memo}</div>` : '';
 
                 li.innerHTML = `
@@ -661,6 +798,14 @@
                     <div class="h-right">
                         <span class="h-amount">${item.amount >= 0 ? '+' : ''}${item.amount.toLocaleString()}원</span>
                         <span class="h-total">${balanceText}원</span>
+                    </div>
+                    <div class="h-actions">
+                        <button class="h-action-btn" onclick="openEditModal(${item.id})">
+                            <img src="edit.png" alt="수정">
+                        </button>
+                        <button class="h-action-btn" onclick="deleteHistory(${item.id})">
+                            <img src="delete.png" alt="삭제">
+                        </button>
                     </div>`;
                 list.appendChild(li);
             });
