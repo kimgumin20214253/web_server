@@ -276,6 +276,53 @@ app.post('/api/challenge/update', async (req, res) => {
     }
 });
 
+
+
+// 16. 저금 내역 수정 
+app.post('/api/savings/update', async (req, res) => {
+    try {
+        const { id, category, subCategory, amount, memo } = req.body;
+        
+        // 데이터베이스 업데이트 쿼리
+        const sql = `
+            UPDATE savings 
+            SET category = ?, sub_category = ?, amount = ?, memo = ? 
+            WHERE id = ?
+        `;
+        
+        const [result] = await pool.query(sql, [category, subCategory, amount, memo, id]);
+        
+        if (result.affectedRows > 0) {
+            res.json({ success: true });
+        } else {
+            res.json({ success: false, message: '해당 내역을 찾을 수 없습니다.' });
+        }
+    } catch (err) {
+        console.error('Update Error:', err);
+        res.status(500).json({ success: false });
+    }
+});
+
+// 17. 저금 내역 삭제 (DELETE)
+app.post('/api/savings/delete', async (req, res) => {
+    try {
+        const { id } = req.body;
+        
+        // 데이터베이스 삭제 쿼리
+        const [result] = await pool.query('DELETE FROM savings WHERE id = ?', [id]);
+        
+        if (result.affectedRows > 0) {
+            res.json({ success: true });
+        } else {
+            res.json({ success: false, message: '삭제할 내역이 없습니다.' });
+        }
+    } catch (err) {
+        console.error('Delete Error:', err);
+        res.status(500).json({ success: false });
+    }
+});
+
+
 // 서버 실행 (Render 호환)
 if (require.main === module) {
     app.listen(port, () => {

@@ -553,54 +553,72 @@
             closeModal('goal-modal'); 
         }
 
-        // [수정됨]: 저금하기/수정하기 모달 열기 함수 (Mode 분리)
-        function openSaveModal(mode = 'save', data = null) {
-            editingHistoryId = null; 
-            
-            // UI 초기화
-            document.querySelectorAll('.cat-item').forEach(el => el.classList.remove('selected'));
-            document.getElementById('chip-area').innerHTML = '<span style="color:#aaa;">카테고리 선택 필요</span>';
-            document.getElementById('save-amount-input').value = '';
-            document.getElementById('save-memo-input').value = '';
-            
-            const titleEl = document.getElementById('save-modal-title');
-            const btnEl = document.getElementById('save-confirm-btn');
+function openSaveModal(mode = 'save', data = null) {
+    editingHistoryId = null; 
+    
+    // UI 초기화
+    document.querySelectorAll('.cat-item').forEach(el => el.classList.remove('selected'));
+    document.getElementById('chip-area').innerHTML = '<span style="color:#aaa;">카테고리 선택 필요</span>';
+    document.getElementById('save-amount-input').value = '';
+    document.getElementById('save-memo-input').value = '';
+    
+    const titleEl = document.getElementById('save-modal-title');
+    const btnEl = document.getElementById('save-confirm-btn');
 
-            if (mode === 'edit' && data) {
-                editingHistoryId = data.id;
-                titleEl.innerText = '저금 내역 수정';
-                btnEl.innerText = '수정 완료';
-                btnEl.classList.add('edit-mode');
-                btnEl.onclick = completeEdit;
-                
-                // 데이터 채우기
-                document.getElementById('save-amount-input').value = data.amount;
-                document.getElementById('save-memo-input').value = data.memo;
-                selectCategory(data.category, document.querySelector(`.cat-item[onclick*='${data.category}']`));
-                
-                // 서브 카테고리 자동 선택
-                setTimeout(() => {
-                    const subChip = document.querySelector(`.chip[onclick*='${data.sub_category}']`);
-                    if (subChip) {
-                        tempSave.sub = data.sub_category;
-                        subChip.classList.add('selected');
-                    } else {
-                        // 직접 입력일 경우를 대비해 tempSave에 sub 저장만 해둠
-                        tempSave.sub = data.sub_category; 
-                    }
-                }, 100);
-
-            } else {
-                // 저금 모드
-                titleEl.innerText = '저금하기';
-                btnEl.innerText = '저금 완료';
-                btnEl.classList.remove('edit-mode');
-                btnEl.onclick = completeSave;
-                tempSave = { category: '', sub: '', amount: 0, memo: '' };
-            }
-
-            document.getElementById('save-modal').classList.add('open');
+    if (mode === 'edit' && data) {
+        editingHistoryId = data.id;
+        titleEl.innerText = '저금 내역 수정';
+        btnEl.innerText = '수정 완료';
+        btnEl.classList.add('edit-mode');
+        btnEl.onclick = completeEdit;
+        
+        // 1. 금액과 메모 채우기
+        document.getElementById('save-amount-input').value = data.amount;
+        document.getElementById('save-memo-input').value = data.memo;
+        
+        // 2. 카테고리 선택 (중요: tempSave 변수 업데이트)
+        const catElement = document.querySelector(`.cat-item[onclick*='${data.category}']`);
+        if(catElement) {
+            // 강제로 클릭 이벤트를 발생시켜 칩을 생성하게 함
+            selectCategory(data.category, catElement);
         }
+
+        // 3. 세부 항목(칩) 선택
+        setTimeout(() => {
+            tempSave.sub = data.sub_category; // 변수에 저장
+            
+            // 칩 UI 선택 효과 주기
+            const chips = document.querySelectorAll('.chip');
+            let found = false;
+            chips.forEach(chip => {
+                if(chip.innerText === data.sub_category) {
+                    chip.classList.add('selected');
+                    found = true;
+                }
+            });
+            // 만약 칩 목록에 없는(직접 입력한) 값이라면
+            if(!found) {
+                const directChip = Array.from(chips).find(c => c.innerText === '직접 입력');
+                if(directChip) {
+                    directChip.classList.add('selected');
+                    // 칩 텍스트를 입력된 값으로 보여줘도 좋음 (선택사항)
+                    // directChip.innerText = data.sub_category; 
+                }
+            }
+        }, 50); // 칩이 생성될 시간을 조금 줌
+
+    } else {
+        // 저금 모드
+        titleEl.innerText = '저금하기';
+        btnEl.innerText = '저금 완료';
+        btnEl.classList.remove('edit-mode');
+        btnEl.onclick = completeSave;
+        tempSave = { category: '', sub: '', amount: 0, memo: '' };
+    }
+
+    document.getElementById('save-modal').classList.add('open');
+}
+
 
         function selectCategory(cat, el) {
             tempSave.category = cat;
