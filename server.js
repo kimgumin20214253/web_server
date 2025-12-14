@@ -284,3 +284,35 @@ if (require.main === module) {
 }
 
 module.exports = app;
+
+
+// --- [진단 키트] DB 연결 테스트 페이지 ---
+app.get('/db-test', async (req, res) => {
+    try {
+        // 1. DB 연결 시도
+        const connection = await pool.getConnection();
+        // 2. 간단한 쿼리 실행
+        const [rows] = await connection.query('SELECT 1 as val');
+        connection.release(); // 연결 반납
+        
+        // 3. 성공 시 메시지 출력
+        res.send(`
+            <h1>✅ DB 연결 성공!</h1>
+            <p>TiDB와 정상적으로 연결되었습니다.</p>
+            <p>테스트 값: ${rows[0].val}</p>
+        `);
+    } catch (err) {
+        // 4. 실패 시 에러 내용 화면에 출력 (이걸 봐야 함!)
+        res.status(500).send(`
+            <h1>❌ DB 연결 실패 (에러 내용)</h1>
+            <pre style="background:#eee; padding:10px; border:1px solid red;">${err.stack}</pre>
+            <hr>
+            <h3>[체크리스트]</h3>
+            <ul>
+                <li><strong>Host:</strong> ${process.env.DB_HOST} (뒤에 .co 가 아니라 .com 인지 확인)</li>
+                <li><strong>User:</strong> ${process.env.DB_USER}</li>
+                <li><strong>DB Name:</strong> ${process.env.DB_NAME}</li>
+            </ul>
+        `);
+    }
+});
