@@ -1,13 +1,18 @@
 {
-  "name": "saving-app-server",
+  "name": "saving-app",
   "version": "1.0.0",
-  "description": "",
+  "description": "Life Routine RPG Project",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-"dependencies": {
-  "cors": "^2.8.5",
-  "express": "^4.21.0",
-  "mysql2": "^3.11.0"  
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.2",
+    "mysql2": "^3.11.0"
+  }
 }
