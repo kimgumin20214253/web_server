@@ -3,22 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>저축 앱 - 통계</title>
+    <title>월간 목표 저축 - 통계 페이지</title>
     <style>
-        /* [기본 스타일 유지] */
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Pretendard', sans-serif; background-color: #FAF4EC; color: #333; overflow: hidden; display: flex; flex-direction: column; }
 
-        /* [통계 헤더] */
         .stat-header { padding: 40px 20px 20px; display: flex; justify-content: center; align-items: center; gap: 20px; }
         .month-nav-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #333; }
         .stat-month-title { font-size: 24px; font-weight: bold; }
         .stat-total-amount { text-align: center; font-size: 36px; font-weight: 800; margin-bottom: 20px; color: #333; }
 
-        /* [차트 섹션] */
         .chart-section { background-color: #FFF; margin: 10px 20px; padding: 20px; border-radius: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: center; position: relative; }
         .chart-title { width: 100%; font-size: 16px; font-weight: bold; margin-bottom: 15px; text-align: left; }
 
-        /* [원 그래프] */
         .pie-container { position: relative; width: 280px; height: 280px; display: flex; justify-content: center; align-items: center; }
         .pie-chart { width: 150px; height: 150px; border-radius: 50%; background: #EEE; cursor: pointer; z-index: 10; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
         
@@ -33,7 +29,6 @@
         .pos-bottom-right { bottom: 0; right: 0; }
         .box-list li { display: flex; justify-content: space-between; margin-bottom: 2px; color: #555; }
 
-        /* [막대 그래프] */
         .bar-chart-container {
             display: flex; align-items: flex-end; 
             height: 220px; width: 100%; padding-top: 20px;
@@ -45,12 +40,11 @@
             min-width: 25px; height: 100%; cursor: pointer; position: relative;
         }
 
-        /* ----- [수정된 부분] 금액 표시 숫자 크기 확대 ----- */
         .bar-value { 
             position: absolute; 
             top: 0; 
-            font-size: 14px; /* 기존 11px에서 14px로 확대 */
-            font-weight: 800; /* 폰트 두껍게 */
+            font-size: 14px; 
+            font-weight: 800;
             white-space: nowrap; 
             background: transparent; 
             margin-bottom: 3px; 
@@ -59,8 +53,8 @@
             pointer-events: none;
         }
         .bar-chart-container.show-all .bar-value,
-        .bar-wrapper.active .bar-value { opacity: 1; top: -25px; /* 숫자 크기에 맞게 위치 조정 */ }
-        /* ---------------------------------------------------- */
+        .bar-wrapper.active .bar-value { opacity: 1; top: -25px;  }
+
 
         .text-red { color: #FF6B6B; }
         .text-blue { color: #4D96FF; }
@@ -155,30 +149,23 @@
         const catIcons = { 'meal': 'cat_meal.png', 'transport': 'cat_transport.png', 'shopping': 'cat_shopping.png', 'leisure': 'cat_leisure.png' };
 
         window.onload = function() {
-            // 1. 로그인 체크
             const savedUser = localStorage.getItem('loginUser');
             if(!savedUser) { alert("로그인이 필요합니다."); location.href='login.html'; return; }
             currentUser = JSON.parse(savedUser);
 
-            // 2. 서버에서 데이터 가져오기
             loadServerData();
         };
 
-        // [핵심] 서버 연동 부분
         function loadServerData() {
-            // Render 배포 환경에서는 http://localhost:3000/api/savings/${currentUser.id} 대신 
-            // 상대 경로 /api/savings/${currentUser.id} 를 사용하는 것이 더 안전합니다.
             fetch(`/api/savings/${currentUser.id}`) 
             .then(res => res.json())
             .then(data => {
                 historyData = data;
-                renderStats(); // 데이터 로드 후 그래프 그리기
+                renderStats(); 
             })
             .catch(err => {
                 console.error("통계 데이터 로드 실패:", err);
-                // 서버 연결 실패 시에도 일단 현재 월로 UI 렌더링
                 renderStats(); 
-                // alert("서버 연결 실패! 데이터를 불러올 수 없습니다.");
             });
         }
 
@@ -194,9 +181,7 @@
 
             document.getElementById('stat-month-title').innerText = `${year}년 ${month+1}월`;
 
-            // DB 데이터 필터링 (날짜 기준)
             const monthlyData = historyData.filter(d => {
-                // DB 날짜 형식: 2025-10-02T00:00:00.000Z -> T 기준 앞부분만 사용
                 const datePart = d.saved_date.split('T')[0];
                 const parts = datePart.split('-');
                 return parseInt(parts[0]) === year && parseInt(parts[1]) === (month + 1);
@@ -210,7 +195,6 @@
             document.querySelectorAll('.detail-box').forEach(el => el.classList.remove('show'));
         }
 
-        // === 원 그래프 (SVG) ===
         function drawPieChart(data, total) {
             const svg = document.getElementById('pie-chart-svg');
             svg.innerHTML = "";
@@ -225,7 +209,6 @@
             let cumulativePercent = 0;
 
             cats.forEach(cat => {
-                // 서버 코드를 보면 DB 컬럼이 'category'이므로 d.category 사용
                 const catSum = data.filter(d => d.category === cat).reduce((acc, cur) => acc + cur.amount, 0);
                 
                 if(catSum > 0) {
@@ -282,13 +265,11 @@
             const listEl = document.querySelector(`#box-${cat} .box-list`);
             listEl.innerHTML = `<li style="border-bottom:1px solid #ddd; margin-bottom:5px;"><b>총 ${sum.toLocaleString()}원</b></li>`;
             items.slice(0, 3).forEach(item => {
-                // DB 컬럼: sub_category
                 listEl.innerHTML += `<li><span>${item.sub_category}</span><span>${item.amount.toLocaleString()}</span></li>`;
             });
         }
         function toggleDetails() { document.querySelectorAll('.detail-box').forEach(el => el.classList.toggle('show')); }
 
-        // === 막대 그래프 ===
         function drawBarChart(data, year, month) {
             const container = document.getElementById('bar-chart-container');
             container.innerHTML = "";
@@ -298,7 +279,6 @@
             const dailySums = new Array(lastDay + 1).fill(0);
 
             data.forEach(d => {
-                // 날짜 파싱 (YYYY-MM-DD)
                 const datePart = d.saved_date.split('T')[0];
                 const day = parseInt(datePart.split('-')[2]);
                 dailySums[day] += d.amount;

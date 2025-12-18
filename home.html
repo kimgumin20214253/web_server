@@ -3,17 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>저축 앱 - 홈</title>
+    <title>월간 목표 저축 - 홈화면</title>
     <style>
-        /* [기본 스타일] */
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Pretendard', sans-serif; background-color: #FAF4EC; color: #333; overflow: hidden; display: flex; flex-direction: column; }
 
-        /* [헤더 & 금액] */
         .header { padding: 40px 20px 10px; text-align: center; }
         .date-text { font-size: 28px; font-weight: 900; color: #333; }
         .d-day { color: #FF6B6B; margin-left: 8px; font-size: 24px; font-weight: 900; }
         
-        /* 구분선 */
         .divider-line {
             width: 320px;
             height: 2px;
@@ -22,7 +19,6 @@
             border-radius: 2px;
         }
 
-        /* 금액 섹션 */
         .money-section { text-align: center; margin-bottom: 10px; min-height: 80px; display: flex; flex-direction: column; justify-content: center; }
         .current-money { font-size: 32px; font-weight: 800; margin-bottom: 5px; }
         .goal-container { display: flex; justify-content: center; align-items: center; gap: 8px; color: #666; font-size: 16px; }
@@ -31,7 +27,6 @@
         .edit-icon-img { width: 20px; height: 20px; object-fit: contain; opacity: 0.6; transition: opacity 0.2s; }
         .edit-btn:hover .edit-icon-img { opacity: 1; }
 
-        /* 랜덤 메시지 이미지 */
         #random-msg-img {
             position: absolute;
             top: -50px;
@@ -46,12 +41,10 @@
         }
         @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        /* [돼지 저금통] */
         .piggy-wrapper { flex: 1; position: relative; display: flex; justify-content: center; align-items: center; width: 100%; overflow: hidden; }
         .piggy-container { position: relative; width: 300px; height: 250px; }
         .piggy-img { width: 100%; height: 100%; object-fit: contain; position: relative; z-index: 10; transition: transform 0.3s ease; }
         
-        /* 퍼센트 텍스트 */
         .percent-bubble { 
             position: absolute; top: -10px; right: 0px; 
             width: 70px; height: 60px; 
@@ -67,12 +60,10 @@
             padding-left: 5px; 
         }
 
-        /* [버튼] */
         .action-buttons { display: flex; justify-content: center; gap: 15px; margin-bottom: 20px; z-index: 30; }
         .main-btn { background-color: #FFD54F; border: none; padding: 12px 30px; border-radius: 30px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 4px rgba(0,0,0,0.1); cursor: pointer; }
         .main-btn.secondary { background-color: #FFE082; }
 
-        /* [네비게이션 바] */
         .navbar { height: 110px; background-color: transparent; border-top: 4px solid #D9D9D9; display: flex; justify-content: space-evenly; align-items: center; padding-bottom: 10px; z-index: 50; }
         a.nav-item { text-decoration: none; color: inherit; }
         .nav-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; border: none; background: none; gap: 6px; }
@@ -83,13 +74,11 @@
         .nav-item.active .nav-icon-img { filter: brightness(0) invert(1); }
         .nav-item.active .nav-text { color: #333; font-weight: bold; }
 
-        /* [모달 공통] */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center; }
         .modal-overlay.open { display: flex; }
         .modal-content { background-color: #FFF; width: 90%; max-width: 360px; border-radius: 20px; padding: 25px; box-sizing: border-box; position: relative; max-height: 85%; overflow-y: auto; }
         .modal-title { font-size: 20px; font-weight: bold; text-align: center; margin-bottom: 20px; }
         
-        /* [3] 수정됨: 모달 닫기 버튼(이미지) 스타일 */
         .modal-back-btn { 
             position: absolute; top: 20px; left: 20px; 
             width: 24px; height: 24px; cursor: pointer; 
@@ -97,7 +86,6 @@
         }
         .modal-back-btn:hover { transform: scale(1.1); }
 
-        /* 목표 금액 창 스타일 */
         #goal-modal .modal-content {
             padding: 40px 25px; 
             min-height: 400px; 
@@ -118,7 +106,6 @@
         .step-block:last-child { border-bottom: none; }
         .step-label { font-size: 16px; font-weight: bold; margin-bottom: 15px; color: #555; }
         
-        /* 저금하기 1단계 */
         .category-grid { 
             display: grid; 
             grid-template-columns: repeat(4, 1fr); 
@@ -143,23 +130,21 @@
         .chip { padding: 8px 15px; background-color: #FFE082; border-radius: 20px; font-size: 14px; cursor: pointer; border: 2px solid transparent; }
         .chip.selected { border-color: #FF6B6B; background-color: #FFD54F; font-weight: bold; }
         
-        /* [수정됨]: + / - 버튼 그룹 스타일 */
         .money-add-btns { 
             display: flex; 
             gap: 5px; 
             justify-content: center; 
-            margin-bottom: 15px; /* 공간 확보 */
-            flex-wrap: wrap; /* 버튼이 많아져서 줄 바꿈 허용 */
+            margin-bottom: 15px;
+            flex-wrap: wrap; 
         }
-        /* [수정됨]: 마이너스 버튼 별도 스타일 */
         .add-btn.negative {
-            background-color: #FFCDD2; /* 연한 빨강 */
-            color: #B71C1C; /* 진한 빨강 */
+            background-color: #FFCDD2; 
+            color: #B71C1C; 
         }
 
         .add-btn { 
             flex: 1; 
-            min-width: 70px; /* 버튼 최소 너비 설정 */
+            min-width: 70px;
             padding: 8px 0; 
             background-color: #FFE082; 
             border: none; 
@@ -171,9 +156,7 @@
         .confirm-btn { width: 100%; padding: 15px; background-color: #FFD54F; border: none; border-radius: 30px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         .confirm-btn.edit-mode { background-color: #4D96FF; color: white; } /* 수정 완료 버튼 색상 */
         
-        /* 저금 내역 리스트 */
         .history-list { list-style: none; padding: 0; margin: 0; }
-        /* [수정됨]: 버튼 공간 확보를 위해 padding-right 조정 */
         .history-item { padding: 15px 15px 15px 15px; border-radius: 12px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; position: relative; }
         
         .bg-meal { background-color: #FFCDD2; }
@@ -186,30 +169,28 @@
         .h-date { font-size: 12px; color: #555; margin-bottom: 2px; }
         .h-title { font-size: 16px; font-weight: bold; }
         
-        /* [1] 추가됨: 메모 텍스트 스타일 */
         .h-memo { font-size: 12px; color: #777; margin-top: 4px; font-weight: normal; }
 
         .h-right { text-align: right; display: flex; flex-direction: column; align-items: flex-end; }
         .h-amount { font-size: 16px; font-weight: bold; color: #333; display: block; }
         .h-total { font-size: 11px; color: #777; margin-top: 3px; font-weight: 500; }
         
-        /* [추가됨]: 수정/삭제 버튼 컨테이너 */
         .h-actions {
             position: absolute;
-            right: 5px; /* 오른쪽 테두리 바깥에 가깝게 배치 */
+            right: 5px; 
             top: 50%;
             transform: translateY(-50%);
             display: flex;
             gap: 5px;
-            z-index: 10; /* 버튼이 잘 눌리도록 */
+            z-index: 10; 
         }
         .h-action-btn {
             background: none;
             border: none;
             padding: 3px;
             cursor: pointer;
-            width: 32px; /* 24px -> 32px로 확대 */
-            height: 32px; /* 24px -> 32px로 확대 */
+            width: 32px;
+            height: 32px; 
             opacity: 0.8;
             transition: opacity 0.2s;
         }
@@ -221,12 +202,10 @@
             height: 100%;
             object-fit: contain;
         }
-        /* [수정됨]: 기존 h-right는 버튼 공간을 비워야 함 */
-        .history-item { padding-right: 90px; } /* 70px -> 90px로 여백 더 확보 */
-        .h-right { margin-right: 0; } /* h-right 자체의 오른쪽 마진은 제거 */
+        .history-item { padding-right: 90px; } 
+        .h-right { margin-right: 0; } 
 
 
-        /* 내역 필터 버튼 */
         .filter-bar { display: flex; gap: 15px; justify-content: center; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #EEE; }
         .filter-icon-btn { 
             width: 50px; height: 50px; 
@@ -238,14 +217,13 @@
         .filter-icon-btn img { width: 100%; height: 100%; object-fit: contain; }
         .filter-icon-btn.active { opacity: 1; border-bottom: 3px solid #FFD54F; }
 
-        /* [2] 수정됨: 더보기 버튼 스타일 (둥글고 노란색) */
         #more-btn {
             width: 100%; 
             padding: 12px; 
             margin-top: 15px; 
-            background-color: #FFD54F; /* 노란색 */
+            background-color: #FFD54F;
             border: none; 
-            border-radius: 30px; /* 둥근 모서리 */
+            border-radius: 30px;
             font-weight: bold; 
             font-size: 14px;
             cursor: pointer; 
@@ -254,7 +232,6 @@
         }
         #more-btn:hover { background-color: #FFCA28; }
 
-        /* [추가됨]: 축하 팝업 스타일 */
         #celebration-popup {
             display: none;
             position: fixed;
@@ -411,14 +388,13 @@
     </div>
 
     <script>
-        // 전역 변수
         let currentUser = null; 
         let historyData = [];   
         let currentSaved = 0;   
         let goalAmount = 50000;
         let tempSave = { category: '', sub: '', amount: 0, memo: '' };
-        let isGoalAchieved = false; // 목표 달성 상태 추적 변수 추가
-        let editingHistoryId = null; // 수정 중인 내역 ID 저장
+        let isGoalAchieved = false; 
+        let editingHistoryId = null;
 
         const subCategories = {
             'meal': ['배달음식', '학식', '편의점', '마트', '레스토랑', '길거리', '회식'],
@@ -470,7 +446,7 @@
                     .reduce((acc, cur) => acc + cur.amount, 0); 
 
                 updateUI();
-                renderHistory(); // 데이터 로드 후 내역도 업데이트
+                renderHistory(); 
             })
             .catch(err => {
                 console.error("데이터 로드 실패:", err);
@@ -478,13 +454,12 @@
             });
         }
 
-        // ... (updateUI, showCelebrationPopup, setTodayDate 함수는 이전과 동일)
         function updateUI() {
             document.getElementById('saved-money').innerText = currentSaved.toLocaleString() + " 원";
             document.getElementById('goal-money-display').innerText = "/ " + goalAmount.toLocaleString() + " 원";
             
             let percent = Math.floor((currentSaved / goalAmount) * 100);
-            const wasAchieved = isGoalAchieved; // 이전 상태 저장
+            const wasAchieved = isGoalAchieved; 
 
             if(percent >= 100) {
                 percent = 100;
@@ -498,10 +473,8 @@
 
             const pigImg = document.querySelector('.piggy-img');
             
-            // 돼지 이미지 로직
             if (isGoalAchieved) {
-                pigImg.src = "piggy100.png"; // 100% 달성 시 이미지 변경
-                // 100% 달성 시 축하 팝업 출력 (이전 상태가 false일 때만)
+                pigImg.src = "piggy100.png"; 
                 if (!wasAchieved) {
                     showCelebrationPopup();
                 }
@@ -527,9 +500,7 @@
             document.getElementById('date-display').innerText = `${now.getFullYear()}년 ${now.getMonth()+1}월`;
             document.getElementById('d-day-display').innerText = `(D-${dDay})`;
         }
-        // ... (updateUI, showCelebrationPopup, setTodayDate 함수 끝)
 
-        // --- 모달 로직 ---
         function closeModal(id) { document.getElementById(id).classList.remove('open'); }
         function openGoalModal() { 
             document.getElementById('goal-input').value = goalAmount;
@@ -556,7 +527,6 @@
 function openSaveModal(mode = 'save', data = null) {
     editingHistoryId = null; 
     
-    // UI 초기화
     document.querySelectorAll('.cat-item').forEach(el => el.classList.remove('selected'));
     document.getElementById('chip-area').innerHTML = '<span style="color:#aaa;">카테고리 선택 필요</span>';
     document.getElementById('save-amount-input').value = '';
@@ -572,22 +542,17 @@ function openSaveModal(mode = 'save', data = null) {
         btnEl.classList.add('edit-mode');
         btnEl.onclick = completeEdit;
         
-        // 1. 금액과 메모 채우기
         document.getElementById('save-amount-input').value = data.amount;
         document.getElementById('save-memo-input').value = data.memo;
         
-        // 2. 카테고리 선택 (중요: tempSave 변수 업데이트)
         const catElement = document.querySelector(`.cat-item[onclick*='${data.category}']`);
         if(catElement) {
-            // 강제로 클릭 이벤트를 발생시켜 칩을 생성하게 함
             selectCategory(data.category, catElement);
         }
 
-        // 3. 세부 항목(칩) 선택
         setTimeout(() => {
-            tempSave.sub = data.sub_category; // 변수에 저장
-            
-            // 칩 UI 선택 효과 주기
+            tempSave.sub = data.sub_category;
+
             const chips = document.querySelectorAll('.chip');
             let found = false;
             chips.forEach(chip => {
@@ -596,19 +561,16 @@ function openSaveModal(mode = 'save', data = null) {
                     found = true;
                 }
             });
-            // 만약 칩 목록에 없는(직접 입력한) 값이라면
+
             if(!found) {
                 const directChip = Array.from(chips).find(c => c.innerText === '직접 입력');
                 if(directChip) {
                     directChip.classList.add('selected');
-                    // 칩 텍스트를 입력된 값으로 보여줘도 좋음 (선택사항)
-                    // directChip.innerText = data.sub_category; 
                 }
             }
-        }, 50); // 칩이 생성될 시간을 조금 줌
+        }, 50); 
 
     } else {
-        // 저금 모드
         titleEl.innerText = '저금하기';
         btnEl.innerText = '저금 완료';
         btnEl.classList.remove('edit-mode');
@@ -639,7 +601,6 @@ function openSaveModal(mode = 'save', data = null) {
             }
         }
 
-        // [수정됨]: 신규 저금 완료 함수
         function completeSave() {
             const amt = parseInt(document.getElementById('save-amount-input').value);
             if(!tempSave.category || !tempSave.sub || !amt || amt <= 0) { 
@@ -672,7 +633,6 @@ function openSaveModal(mode = 'save', data = null) {
                     alert('저금 완료!');
                     loadServerData(); 
                     closeModal('save-modal');
-                    // 메시지 팝업 로직
                     const randomNum = Math.floor(Math.random() * 10) + 1;
                     const msgImg = document.getElementById('random-msg-img');
                     msgImg.src = `message${randomNum}.png`;
@@ -685,7 +645,6 @@ function openSaveModal(mode = 'save', data = null) {
             .catch(err => console.error(err));
         }
 
-        // [추가됨]: 내역 수정 완료 함수
         function completeEdit() {
             if (!editingHistoryId) return;
 
@@ -696,15 +655,14 @@ function openSaveModal(mode = 'save', data = null) {
             }
 
             const updateData = {
-                id: editingHistoryId, // DB에서 이 ID를 기준으로 업데이트
+                id: editingHistoryId, 
                 category: tempSave.category,
                 subCategory: tempSave.sub,
                 amount: amt,
                 memo: document.getElementById('save-memo-input').value,
-                // balance는 서버에서 재계산하는 것이 안전함. 여기서는 변경된 내역만 보냄.
             };
 
-            fetch('/api/savings/update', { // 서버에 업데이트 API 엔드포인트가 있다고 가정
+            fetch('/api/savings/update', { 
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updateData)
@@ -713,9 +671,9 @@ function openSaveModal(mode = 'save', data = null) {
             .then(data => {
                 if(data.success) {
                     alert('내역이 수정되었습니다.');
-                    loadServerData(); // 데이터 다시 로드 및 UI 업데이트
+                    loadServerData(); 
                     closeModal('save-modal');
-                    closeModal('history-modal'); // 내역 창도 닫기
+                    closeModal('history-modal'); 
                 } else {
                     alert('수정 실패');
                 }
@@ -723,7 +681,6 @@ function openSaveModal(mode = 'save', data = null) {
             .catch(err => console.error(err));
         }
 
-        // [추가됨]: 수정 버튼 클릭 시
         function openEditModal(id) {
             const itemToEdit = historyData.find(d => d.id === id);
             if (itemToEdit) {
@@ -732,12 +689,11 @@ function openSaveModal(mode = 'save', data = null) {
             }
         }
 
-        // [추가됨]: 삭제 버튼 클릭 시
         function deleteHistory(id) {
             if (!confirm("정말로 이 저금 내역을 삭제하시겠습니까?")) return;
 
-            fetch('/api/savings/delete', { // 서버에 삭제 API 엔드포인트가 있다고 가정
-                method: 'POST', // DELETE 대신 POST를 사용하는 경우가 많음
+            fetch('/api/savings/delete', { 
+                method: 'POST', 
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id: id, userId: currentUser.id })
             })
@@ -745,7 +701,7 @@ function openSaveModal(mode = 'save', data = null) {
             .then(data => {
                 if(data.success) {
                     alert('내역이 삭제되었습니다.');
-                    loadServerData(); // 데이터 다시 로드 및 UI 업데이트
+                    loadServerData(); 
                 } else {
                     alert('삭제 실패');
                 }
@@ -776,7 +732,6 @@ function openSaveModal(mode = 'save', data = null) {
 
         function showMoreHistory() { historyLimit += 5; renderHistory(); }
         
-        // [수정됨]: 수정/삭제 버튼 포함하여 내역 렌더링
         function renderHistory() {
             const list = document.getElementById('history-list-box'); list.innerHTML = '';
             const now = new Date();

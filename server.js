@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const mysql = require('mysql2/promise'); // mysql2 라이브러리 사용 (Promise 지원)
+const mysql = require('mysql2/promise'); 
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -10,31 +10,30 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
-// [TiDB Cloud 연결 설정]
-// Render의 'Environment Variables'에 설정한 값들을 불러옵니다.
+
 const pool = mysql.createPool({
-    host: process.env.DB_HOST,         // TiDB Host
-    user: process.env.DB_USER,         // TiDB User
-    password: process.env.DB_PASSWORD, // TiDB Password
-    database: process.env.DB_NAME || 'test', // DB 이름
-    port: 4000,                        // TiDB 포트 (4000)
+    host: process.env.DB_HOST,         
+    user: process.env.DB_USER,        
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME || 'test', 
+    port: 4000,                        
     ssl: {
         minVersion: 'TLSv1.2',
-        rejectUnauthorized: true       // 필수 보안 설정
+        rejectUnauthorized: true     
     },
     waitForConnections: true,
     connectionLimit: 10,
     queueLimit: 0
 });
 
-// 메인 화면 연결 (index.html)
+
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// --- API 코드 (DB 연동) ---
 
-// 1. 아이디 중복 확인
+
+
 app.post('/api/check-id', async (req, res) => {
     try {
         const { loginId } = req.body;
@@ -46,7 +45,7 @@ app.post('/api/check-id', async (req, res) => {
     }
 });
 
-// 2. 이메일 중복 확인
+
 app.post('/api/check-email', async (req, res) => {
     try {
         const { email } = req.body;
@@ -58,12 +57,12 @@ app.post('/api/check-email', async (req, res) => {
     }
 });
 
-// 3. 회원가입
+
 app.post('/api/signup', async (req, res) => {
     try {
         const { loginId, password, nickname, email } = req.body;
 
-        // 아이디 중복 재확인 (보안)
+
         const [existing] = await pool.query('SELECT id FROM users WHERE login_id = ?', [loginId]);
         if (existing.length > 0) {
             return res.json({ success: false, message: '이미 존재하는 아이디입니다.' });
@@ -79,7 +78,7 @@ app.post('/api/signup', async (req, res) => {
     }
 });
 
-// 4. 로그인
+
 app.post('/api/login', async (req, res) => {
     try {
         const { loginId, password } = req.body;
@@ -97,7 +96,7 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// 5. 아이디 찾기
+
 app.post('/api/find-id', async (req, res) => {
     try {
         const { email } = req.body;
@@ -114,7 +113,7 @@ app.post('/api/find-id', async (req, res) => {
     }
 });
 
-// 6. 비밀번호 찾기
+
 app.post('/api/find-pw', async (req, res) => {
     try {
         const { loginId, email } = req.body;
@@ -131,12 +130,12 @@ app.post('/api/find-pw', async (req, res) => {
     }
 });
 
-// 7. 비밀번호 변경
+
 app.post('/api/user/change-pw', async (req, res) => {
     try {
         const { loginId, currentPassword, newPassword } = req.body;
         
-        // 현재 비밀번호 확인
+
         const [rows] = await pool.query('SELECT id FROM users WHERE login_id = ? AND password = ?', [loginId, currentPassword]);
         
         if (rows.length > 0) {
@@ -151,7 +150,7 @@ app.post('/api/user/change-pw', async (req, res) => {
     }
 });
 
-// 9. 유저 정보 조회
+
 app.get('/api/user/:id', async (req, res) => {
     try {
         const userId = parseInt(req.params.id);
@@ -168,7 +167,7 @@ app.get('/api/user/:id', async (req, res) => {
     }
 });
 
-// 10. 유저 정보 수정 (닉네임)
+
 app.post('/api/user/update', async (req, res) => {
     try {
         const { id, nickname } = req.body;
@@ -185,11 +184,10 @@ app.post('/api/user/update', async (req, res) => {
     }
 });
 
-// 11. 저금 내역 조회
+
 app.get('/api/savings/:userId', async (req, res) => {
     try {
         const userId = parseInt(req.params.userId);
-        // 최신순 정렬
         const [rows] = await pool.query('SELECT * FROM savings WHERE user_id = ? ORDER BY saved_date DESC', [userId]);
         res.json(rows);
     } catch (err) {
@@ -198,7 +196,7 @@ app.get('/api/savings/:userId', async (req, res) => {
     }
 });
 
-// 12. 저금하기
+
 app.post('/api/save', async (req, res) => {
     try {
         const { userId, category, subCategory, amount, memo, balance, dateStr } = req.body;
@@ -207,7 +205,7 @@ app.post('/api/save', async (req, res) => {
             INSERT INTO savings (user_id, category, sub_category, amount, memo, balance, saved_date)
             VALUES (?, ?, ?, ?, ?, ?, ?)
         `;
-        // dateStr이 없으면 오늘 날짜 사용
+
         const date = dateStr ? dateStr : new Date();
 
         await pool.query(sql, [userId, category, subCategory, amount, memo, balance, date]);
@@ -218,7 +216,7 @@ app.post('/api/save', async (req, res) => {
     }
 });
 
-// 13. 챌린지 생성
+
 app.post('/api/challenge', async (req, res) => {
     try {
         const { userId, title, category, subCategory, targetAmount, startDate, endDate } = req.body;
@@ -235,7 +233,7 @@ app.post('/api/challenge', async (req, res) => {
     }
 });
 
-// 14. 챌린지 목록 조회
+
 app.get('/api/challenges/:userId', async (req, res) => {
     try {
         const userId = parseInt(req.params.userId);
@@ -247,7 +245,7 @@ app.get('/api/challenges/:userId', async (req, res) => {
     }
 });
 
-// 15. 챌린지 상태 업데이트
+
 app.post('/api/challenge/update', async (req, res) => {
     try {
         const { id, savedAmount, status } = req.body;
@@ -278,12 +276,12 @@ app.post('/api/challenge/update', async (req, res) => {
 
 
 
-// 16. 저금 내역 수정 
+
 app.post('/api/savings/update', async (req, res) => {
     try {
         const { id, category, subCategory, amount, memo } = req.body;
         
-        // 데이터베이스 업데이트 쿼리
+
         const sql = `
             UPDATE savings 
             SET category = ?, sub_category = ?, amount = ?, memo = ? 
@@ -303,12 +301,12 @@ app.post('/api/savings/update', async (req, res) => {
     }
 });
 
-// 17. 저금 내역 삭제 (DELETE)
+
 app.post('/api/savings/delete', async (req, res) => {
     try {
         const { id } = req.body;
         
-        // 데이터베이스 삭제 쿼리
+
         const [result] = await pool.query('DELETE FROM savings WHERE id = ?', [id]);
         
         if (result.affectedRows > 0) {
@@ -323,7 +321,7 @@ app.post('/api/savings/delete', async (req, res) => {
 });
 
 
-// 서버 실행 (Render 호환)
+
 if (require.main === module) {
     app.listen(port, () => {
         console.log(`Server running at http://localhost:${port}`);
@@ -333,33 +331,23 @@ if (require.main === module) {
 module.exports = app;
 
 
-// --- [진단 키트] DB 연결 테스트 페이지 ---
+
 app.get('/db-test', async (req, res) => {
     try {
-        // 1. DB 연결 시도
+
         const connection = await pool.getConnection();
-        // 2. 간단한 쿼리 실행
+
         const [rows] = await connection.query('SELECT 1 as val');
-        connection.release(); // 연결 반납
+        connection.release();
         
-        // 3. 성공 시 메시지 출력
+
         res.send(`
-            <h1>✅ DB 연결 성공!</h1>
-            <p>TiDB와 정상적으로 연결되었습니다.</p>
-            <p>테스트 값: ${rows[0].val}</p>
+            <h1>DB 연결 성공!</h1>
         `);
     } catch (err) {
-        // 4. 실패 시 에러 내용 화면에 출력 (이걸 봐야 함!)
         res.status(500).send(`
-            <h1>❌ DB 연결 실패 (에러 내용)</h1>
-            <pre style="background:#eee; padding:10px; border:1px solid red;">${err.stack}</pre>
-            <hr>
-            <h3>[체크리스트]</h3>
-            <ul>
-                <li><strong>Host:</strong> ${process.env.DB_HOST} (뒤에 .co 가 아니라 .com 인지 확인)</li>
-                <li><strong>User:</strong> ${process.env.DB_USER}</li>
-                <li><strong>DB Name:</strong> ${process.env.DB_NAME}</li>
-            </ul>
+            <h1>DB 연결 실패 </h1>
+
         `);
     }
 });

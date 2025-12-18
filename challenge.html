@@ -3,9 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>저축 앱 - 챌린지</title>
+    <title>월간 목표 저축 - 챌린지 화면<title>
     <style>
-        /* [기본 스타일 유지] */
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Pretendard', sans-serif; background-color: #FAF4EC; color: #333; overflow: hidden; display: flex; flex-direction: column; }
         .header { padding: 40px 20px 20px; text-align: center; font-size: 24px; font-weight: bold; }
         .content-container { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; }
@@ -13,18 +12,14 @@
         
         #challenge-list-container { display: flex; flex-direction: column; gap: 20px; }
         
-        /* 챌린지 카드 디자인 */
         .challenge-card { background-color: #FFEBEB; border-radius: 20px; padding: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); display: flex; flex-direction: column; position: relative; }
         
-        /* 카테고리 폰트 수정됨 */
         .card-cat { font-size: 16px; font-weight: bold; color: #666; margin-bottom: 8px; }
         .card-title { font-size: 22px; font-weight: 800; margin-bottom: 5px; line-height: 1.3; }
         
-        /* 날짜 폰트 수정됨 */
         .card-date { font-size: 14px; font-weight: bold; color: #555; margin-bottom: 15px; }
         .d-day-red { color: #FF6B6B; font-weight: 900; font-size: 15px; margin-left: 5px; }
         
-        /* 게이지바 레이아웃 수정됨 */
         .progress-container {
             display: flex;
             align-items: center; 
@@ -49,7 +44,6 @@
         .add-challenge-box { background-color: #FFE082; border-radius: 20px; min-height: 100px; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.05); font-size: 18px; font-weight: bold; gap: 10px; margin-top: 10px; }
         .history-btn { width: 100%; padding: 15px; background-color: #FFCC80; border: none; border-radius: 30px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 20px; }
 
-        /* 네비게이션 바 */
         .navbar { height: 110px; background-color: transparent; border-top: 4px solid #D9D9D9; display: flex; justify-content: space-evenly; align-items: center; padding-bottom: 10px; z-index: 50; flex-shrink: 0; }
         .nav-item { display: flex; flex-direction: column; align-items: center; cursor: pointer; border: none; background: none; gap: 6px; text-decoration: none; }
         .nav-icon-box { width: 58px; height: 58px; background-color: #FFD54F; border-radius: 14px; display: flex; justify-content: center; align-items: center; box-shadow: 0 3px 6px rgba(0,0,0,0.1); transition: all 0.3s ease; }
@@ -59,7 +53,6 @@
         .nav-item.active .nav-icon-img { filter: brightness(0) invert(1); }
         .nav-item.active .nav-text { color: #333; font-weight: bold; }
 
-        /* 모달 공통 */
         .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center; }
         .modal-overlay.open { display: flex; }
         .modal-content { background-color: #FFF; width: 90%; max-width: 360px; border-radius: 20px; padding: 25px; box-sizing: border-box; position: relative; max-height: 85%; overflow-y: auto; }
@@ -100,13 +93,12 @@
         .chip { padding: 8px 15px; background-color: #FFE082; border-radius: 20px; font-size: 14px; cursor: pointer; border: 2px solid transparent; }
         .chip.selected { border-color: #FF6B6B; background-color: #FFD54F; font-weight: bold; }
         
-        /* [수정됨] 금액 옵션 버튼 그룹 및 마이너스 스타일 */
         .money-options { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
         .money-chip { padding: 10px 20px; background-color: #EFEBE6; border-radius: 20px; cursor: pointer; border: 2px solid transparent; font-size: 14px; }
         .money-chip.selected { border-color: #FF6B6B; background-color: #FFD54F; font-weight: bold; }
         .money-chip.negative { 
-            background-color: #FFCDD2; /* 연한 빨강 */
-            color: #B71C1C; /* 진한 빨강 */
+            background-color: #FFCDD2; 
+            color: #B71C1C; 
             border-color: #FF6B6B;
         }
         
@@ -116,7 +108,7 @@
 
         .input-box { width: 100%; padding: 15px; background-color: #EFEBE6; border: none; border-radius: 10px; font-size: 16px; text-align: center; font-weight: bold; box-sizing: border-box; }
         
-        /* 금액 입력창 밑줄 스타일 */
+
         .input-underline {
             width: 100%; padding: 10px 5px;
             background-color: transparent;
@@ -423,17 +415,15 @@
             selectedChallengeId = id;
             document.getElementById('money-input').value = "";
             document.getElementById('modal-current-saved').innerText = currentSaved.toLocaleString();
-            // 금액 입력창의 마이너스 버튼 그룹의 선택을 해제합니다.
             document.querySelectorAll('.money-chip.negative').forEach(c => c.classList.remove('selected'));
             document.getElementById('add-money-modal').classList.add('open');
         }
         
-        // [수정된 함수]: 마이너스 금액 입력 시 0 미만 방지
         function addInputMoney(amt) {
             const el = document.getElementById('money-input');
             let currentVal = parseInt(el.value)||0;
             currentVal += amt;
-            if (currentVal < 0) currentVal = 0; // 0 미만 방지
+            if (currentVal < 0) currentVal = 0; 
             el.value = currentVal;
         }
 
@@ -445,7 +435,6 @@
             }
             const target = challenges.find(c => c.id === selectedChallengeId);
             if(target) {
-                // 저장된 금액이 음수가 되지 않도록 최종 확인
                 const newSaved = target.saved_amount + amt;
                 if (newSaved < 0) {
                      alert('누적 절약 금액이 음수가 될 수 없습니다.');
@@ -492,7 +481,6 @@
         }
         function showMoreHistory() { historyLimit += 3; renderHistory(); }
 
-        // --- UI Logic ---
         function openAddChallengeModal() {
             newChallenge = { saved: 0, isCustom: false };
             document.querySelectorAll('.cat-item').forEach(el=>el.classList.remove('selected'));
