@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>월간 목표 저축 - 챌린지 화면<title>
+    <title>저축 앱 - 챌린지</title>
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Pretendard', sans-serif; background-color: #FAF4EC; color: #333; overflow: hidden; display: flex; flex-direction: column; }
         .header { padding: 40px 20px 20px; text-align: center; font-size: 24px; font-weight: bold; }
@@ -108,7 +108,6 @@
 
         .input-box { width: 100%; padding: 15px; background-color: #EFEBE6; border: none; border-radius: 10px; font-size: 16px; text-align: center; font-weight: bold; box-sizing: border-box; }
         
-
         .input-underline {
             width: 100%; padding: 10px 5px;
             background-color: transparent;
@@ -481,6 +480,7 @@
         }
         function showMoreHistory() { historyLimit += 3; renderHistory(); }
 
+        // --- UI Logic ---
         function openAddChallengeModal() {
             newChallenge = { saved: 0, isCustom: false };
             document.querySelectorAll('.cat-item').forEach(el=>el.classList.remove('selected'));
